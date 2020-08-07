@@ -1,0 +1,23 @@
+{
+    "name": "nikitovskij/php-gendiff",
+    "description": "CLI utility for fainding discrepancies in configuration files.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "nikitovskij",
+            "email": "nbaranovsky24@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "docopt/docopt": "dev-master"
+    },
+    "bin": [
+        "bin/gendiff"
+    ],
+    "autoload": {
+        "psr-4": {}
+    }
+
+}
