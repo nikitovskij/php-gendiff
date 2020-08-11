@@ -11,8 +11,9 @@ if (file_exists($autoloadPath1)) {
     require_once $autoloadPath2;
 }
 
+use function App\run;
 
-$doc = <<<DOC
+$doc = <<<DOCOPT
 Generate diff
 
 Usage: 
@@ -24,6 +25,8 @@ Options:
   -h --help                 Show this screen
   -v --version              Show version
   --format <fmt>            Report format [default: pretty]
-DOC;
+DOCOPT;
 
-$args = Docopt::handle($doc);
+$args = Docopt::handle($doc, ['version' => '0.1.0']);
+
+run($args);
