@@ -7,12 +7,12 @@ const SECOND_FILE = '<secondFile>';
 
 function run($args)
 {
-    //TODO: handler for params <firstFile>, <secondFile>
     $firstFile = $args[FIRST_FILE];
     $secondFile = $args[SECOND_FILE];
 
     $res = checkDiff($firstFile, $secondFile);
-    print_r(json_encode($res, JSON_PRETTY_PRINT));
+
+    return genReadableOutput($res);
 }
 
 function getFileContent($file)
@@ -32,6 +32,8 @@ function checkDiff($firstFile, $secondFile)
     $contentSecond = getFileContent($secondFile); //array
 
     $result = [];
+
+    //TODO: use filter, map, reduce instead
     foreach ($contentFirst as $key => $value) {
         foreach ($contentSecond as $skey => $svalue) {
             if (array_key_exists($key, $contentSecond)) {
@@ -56,4 +58,16 @@ function checkDiff($firstFile, $secondFile)
     }
 
     return $result;
+}
+
+function genReadableOutput($data)
+{
+    $func = function ($key, $value) {
+        $value = $value === true ? "true" : $value;
+        return "  {$key}: {$value}";
+    };
+
+    $readableOutput = array_map($func, array_keys($data), $data);
+
+    return "{\n" . implode("\n", $readableOutput) . "\n}";
 }
