@@ -11,7 +11,8 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "docopt/docopt": "dev-master"
+        "docopt/docopt": "dev-master",
+        "funct/funct": "^1.0@dev"
     },
     "bin": [
         "bin/gendiff"
