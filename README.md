@@ -5,5 +5,5 @@
 This a program that determines the difference between two data structures.
 
 Utility features:
-    - Support for different input formats: yaml and json
-    - Generating a report in plain text, stylish and json format
+- Support for different input formats: yaml and json
+- Generating a report in plain text, stylish and json format
