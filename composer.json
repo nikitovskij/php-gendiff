@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "docopt/docopt": "dev-master",
+        "docopt/docopt": "@dev",
         "funct/funct": "^1.0@dev"
     },
     "bin": [
