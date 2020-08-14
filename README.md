@@ -7,3 +7,6 @@ This a program that determines the difference between two data structures.
 Utility features:
 - Support for different input formats: yaml and json
 - Generating a report in plain text, stylish and json format
+
+## php-gendiff
+[![asciicast](https://asciinema.org/a/bguI3dSGS0Oucj41LmGyWx6aC.svg)](https://asciinema.org/a/bguI3dSGS0Oucj41LmGyWx6aC)
