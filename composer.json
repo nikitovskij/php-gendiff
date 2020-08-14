@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "docopt/docopt": "@dev",
+        "docopt/docopt": "dev-master",
         "funct/funct": "^1.0@dev"
     },
     "bin": [
@@ -30,7 +30,5 @@
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.0@dev"
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    }
 }
