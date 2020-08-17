@@ -1,6 +1,8 @@
 # PHP GenDiff
+[![PHP GenDiff](https://github.com/nikitovskij/php-gendiff/workflows/PHP%20GenDiff/badge.svg?branch=master)](https://github.com/nikitovskij/php-gendiff/actions)
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 [![Maintainability](https://api.codeclimate.com/v1/badges/49b443ed2897d6babf08/maintainability)](https://codeclimate.com/github/nikitovskij/php-gendiff/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/49b443ed2897d6babf08/test_coverage)](https://codeclimate.com/github/nikitovskij/php-gendiff/test_coverage)
 
 This a program that determines the difference between two data structures.
 

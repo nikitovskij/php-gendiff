@@ -68,7 +68,7 @@ function getComparingData(array $contentFirst, array $contentSecond)
         return $result;
     };
 
-    return array_map($comparingFunc, $listOfKeys);
+    return array_values(array_map($comparingFunc, $listOfKeys));
 }
 
 function isItemsSame($key, array $dataFirst, array $dataSecond)

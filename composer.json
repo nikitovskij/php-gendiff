@@ -17,18 +17,16 @@
         "bin/gendiff"
     ],
     "autoload": {
-        "psr-4": {
-            "Php\\Package\\": "src",
-            "Php\\Package\\Tests\\": "tests"
-        },
         "files": [
             "src/GenDiff.php"
         ]
     },
     "scripts": {
-        "phpcs": "phpcs"
+        "phpcs": "phpcs",
+        "test": "phpunit tests"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "^3.0@dev"
+        "squizlabs/php_codesniffer": "^3.0@dev",
+        "phpunit/phpunit": "^9.3"
     }
 }
