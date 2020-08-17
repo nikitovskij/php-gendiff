@@ -4,7 +4,8 @@ namespace App\Tests;
 
 use PHPUnit\Framework\TestCase;
 
-use function App\{isItemAdded, isItemDeleted, isItemsChanged, isItemsSame, getFileContents, checkDiff};
+use function App\{isItemAdded, isItemDeleted, isItemsChanged, isItemsSame, getFileContents, checkDiff,
+    getReadableOutput};
 
 class GenDiffTest extends TestCase
 {
@@ -95,5 +96,26 @@ class GenDiffTest extends TestCase
         $expected = json_decode(file_get_contents($comparedDataPath), true);
 
         $this->assertSame($expected, checkDiff($filePathFirst, $filePathSecond));
+
+        return checkDiff($filePathFirst, $filePathSecond);
+    }
+
+    /**
+     * @depends testCheckDiff
+     */
+    public function testGetReadableOutput(array $data)
+    {
+        $expectedOutput = [
+            "{",
+            "    host: hexlet.io",
+            "    - timeout: 50",
+            "    + timeout: 20",
+            "    - proxy: 123.234.53.22",
+            "    + verbose: true",
+            "}"
+        ];
+        $expected = implode("\n", $expectedOutput);
+
+        $this->assertSame($expected, getReadableOutput($data));
     }
 }

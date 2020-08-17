@@ -115,7 +115,7 @@ function getReadableOutput($data)
     $func = function ($value) use ($logicData) {
         $flatten = array_map(function ($key, $value) use ($logicData) {
             $value = $logicData[$value] ?? $value;
-            return "    {$key} : {$value}";
+            return "    {$key}: {$value}";
         }, array_keys($value), $value);
 
         return $flatten;
