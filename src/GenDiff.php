@@ -3,6 +3,8 @@
 namespace App;
 
 use Funct\Collection;
+use App\Parsers\JsonParser;
+use App\Parsers\YmlParser;
 
 const FIRST_FILE = '<firstFile>';
 const SECOND_FILE = '<secondFile>';
@@ -28,13 +30,20 @@ function checkDiff($firstFile, $secondFile)
 
 function getFileContents($file)
 {
+    $parsers = [
+        'json' => fn($data) => JsonParser\parseJson($data),
+        'yml'  => fn($data) => YmlParser\parseYml($data)
+    ];
+
     $filePath = realpath($file);
-    if (file_exists($filePath)) {
-        $contentOfFile = file_get_contents($filePath);
-        return json_decode($contentOfFile, true);
+    if (!file_exists($filePath)) {
+        return false;
     }
 
-    return false;
+    $fileExtension = pathinfo($filePath, PATHINFO_EXTENSION);
+    $data = file_get_contents($filePath);
+
+    return $parsers[$fileExtension]($data);
 }
 
 function getComparingData(array $contentFirst, array $contentSecond)
