@@ -10,5 +10,8 @@ Utility features:
 - Support for different input formats: yaml and json
 - Generating a report in plain text, stylish and json format
 
-## php-gendiff
+## php-gendiff:json
 [![asciicast](https://asciinema.org/a/bguI3dSGS0Oucj41LmGyWx6aC.svg)](https://asciinema.org/a/bguI3dSGS0Oucj41LmGyWx6aC)
+
+## php-gendiff:yml
+[![asciicast](https://asciinema.org/a/lQ5YZJ1YkaQFT37Y1NADuiFwh.svg)](https://asciinema.org/a/lQ5YZJ1YkaQFT37Y1NADuiFwh)
