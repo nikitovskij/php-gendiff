@@ -1,5 +1,11 @@
 {
     "timeout": 20,
     "verbose": true,
-    "host": "hexlet.io"
+    "host": "hexlet.io",
+    "test": {
+        "first": 100,
+        "second": {
+            "val": "new"
+        }
+    }
 }
