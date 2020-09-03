@@ -1,6 +1,0 @@
-{
-    "0": {"host": "hexlet.io"},
-    "1": {"- timeout": 50, "+ timeout": 20},
-    "2": {"- proxy": "123.234.53.22"},
-    "3": {"+ verbose": true}
-}
