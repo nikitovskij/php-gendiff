@@ -6,78 +6,104 @@ use Funct\Collection;
 use App\Parsers\JsonParser;
 use App\Parsers\YmlParser;
 
+use function App\Renders\Pretty\render;
+
 const FIRST_FILE = '<firstFile>';
 const SECOND_FILE = '<secondFile>';
 
 function run($args)
 {
-    $firstFile = $args[FIRST_FILE];
+    $firstFile  = $args[FIRST_FILE];
     $secondFile = $args[SECOND_FILE];
 
-    $res = checkDiff($firstFile, $secondFile);
-
-    return getReadableOutput($res);
+    return checkDiff($firstFile, $secondFile);
 }
 
 function checkDiff($firstFile, $secondFile)
 {
-    $contentFirst = getFileContents($firstFile); //array
-    $contentSecond = getFileContents($secondFile); //array
-    $comparedData = getComparingData($contentFirst, $contentSecond);
-    
-    return $comparedData;
+    $contentFirst = getFileContent($firstFile);
+    $contentSecond = getFileContent($secondFile);
+
+    $comparedTree = makeCompare($contentFirst, $contentSecond);
+    return render($comparedTree);
 }
 
-function getFileContents($file)
+function getFileContent($file)
 {
-    $parsers = [
-        'json' => fn($data) => JsonParser\parseJson($data),
-        'yml'  => fn($data) => YmlParser\parseYml($data)
-    ];
-
     $filePath = realpath($file);
-    if (!file_exists($filePath)) {
-        return false;
+    if (!$filePath) {
+        throw new \Exception('File does not found.');
     }
 
     $fileExtension = pathinfo($filePath, PATHINFO_EXTENSION);
-    $data = file_get_contents($filePath);
+    if (!isset($fileExtension)) {
+        throw new \Exception('Unknown file extension.');
+    }
 
-    return $parsers[$fileExtension]($data);
+    $fileHandler   = fileHandlers($fileExtension);
+    $contentOfFile = file_get_contents($filePath);
+    if (!$fileExtension) {
+        throw new \Exception('Can not read the file.');
+    }
+
+    return $fileHandler($contentOfFile);
 }
 
-function getComparingData(array $contentFirst, array $contentSecond)
+function fileHandlers($fileExtension)
+{
+    $handlers = [
+        'json' => fn($data) => JsonParser\parseJson($data),
+        'yml'  => fn($data) => YmlParser\parseYml($data),
+        'yaml' => fn($data) => YmlParser\parseYml($data)
+    ];
+
+    return $handlers[$fileExtension];
+}
+
+function makeCompare(array $contentFirst, array $contentSecond)
 {
     $listOfKeys = Collection\union(array_keys($contentFirst), array_keys($contentSecond));
+    $sortedKeys = sortKeys($listOfKeys);
 
-    $result = [];
-    $comparingFunc = function ($item) use ($contentFirst, $contentSecond, $result) {
-        $isPairSame = isItemsSame($item, $contentFirst, $contentSecond);
-        $isChanged  = isItemsChanged($item, $contentFirst, $contentSecond);
-        $isAdded    = isItemAdded($item, $contentFirst, $contentSecond);
-        $isDeleted  = isItemDeleted($item, $contentFirst, $contentSecond);
+    $checkChildren = function ($key) use ($contentFirst, $contentSecond) {
+        $firstChild  = $contentFirst[$key] ?? null;
+        $secondChild = $contentSecond[$key] ?? null;
 
-        if ($isPairSame) {
-            $result[$item] = $contentFirst[$item];
+        if (is_array($firstChild) && is_array($secondChild)) {
+            return [ 'key' => $key, 'state' => 'same', 'value' => makeCompare($firstChild, $secondChild)];
         }
 
-        if ($isChanged) {
-            $result["- {$item}"] = $contentFirst[$item];
-            $result["+ {$item}"] = $contentSecond[$item];
-        }
-
-        if ($isAdded) {
-            $result["+ {$item}"] = $contentSecond[$item];
-        }
-
-        if ($isDeleted) {
-            $result["- {$item}"] = $contentFirst[$item];
-        }
-
-        return $result;
+        return getComparingData($key, $contentFirst, $contentSecond);
     };
 
-    return array_values(array_map($comparingFunc, $listOfKeys));
+    return array_values(array_map($checkChildren, $sortedKeys));
+}
+
+function getComparingData($key, $contentFirst, $contentSecond)
+{
+    $isChanged = isItemsChanged($key, $contentFirst, $contentSecond);
+    $isAdded   = isItemAdded($key, $contentFirst, $contentSecond);
+    $isDeleted = isItemDeleted($key, $contentFirst, $contentSecond);
+
+    if ($isChanged) {
+        return [
+            'key' => $key, 'state' => 'change',
+            'value' => [
+                'before' => $contentFirst[$key],
+                'after' => $contentSecond[$key]
+                ]
+            ];
+    }
+
+    if ($isAdded) {
+        return ['key' => $key, 'state' => 'new', 'value' => $contentSecond[$key]];
+    }
+
+    if ($isDeleted) {
+        return ['key' => $key, 'state' => 'delete', 'value' => $contentFirst[$key]];
+    }
+
+    return ['key' => $key, 'state' => 'same', 'value' => $contentFirst[$key]];
 }
 
 function isItemsSame($key, array $dataFirst, array $dataSecond)
@@ -112,24 +138,9 @@ function isItemDeleted($key, array $dataFirst, array $dataSecond)
     return array_key_exists($key, $dataFirst) && !array_key_exists($key, $dataSecond);
 }
 
-function getReadableOutput($data)
+function sortKeys($listOfKeys)
 {
-    $logicData = [
-        true  => "true",
-        false => "false",
-        null  => "null",
-        ''    => "''"
-    ];
+    usort($listOfKeys, fn($firstKey, $secondKey) => $firstKey <=> $secondKey);
 
-    $func = function ($value) use ($logicData) {
-        $flatten = array_map(function ($key, $value) use ($logicData) {
-            $value = $logicData[$value] ?? $value;
-            return "    {$key}: {$value}";
-        }, array_keys($value), $value);
-
-        return $flatten;
-    };
-    $readableOutput = Collection\flatten(array_map($func, $data));
-
-    return "{\n" . implode("\n", $readableOutput) . "\n}";
+    return $listOfKeys;
 }
