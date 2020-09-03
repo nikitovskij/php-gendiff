@@ -21,7 +21,8 @@
         "files": [
             "src/GenDiff.php",
             "src/parsers/JsonParser.php",
-            "src/parsers/YmlParser.php"
+            "src/parsers/YmlParser.php",
+            "src/Renders/Pretty.php"
         ]
     },
     "scripts": {
