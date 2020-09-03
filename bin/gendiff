@@ -28,6 +28,6 @@ Options:
 DOCOPT;
 
 $args = Docopt::handle($doc, ['version' => '0.1.0']);
-$result = run($args);
+$output = run($args);
 
-echo $result;
+echo $output;
