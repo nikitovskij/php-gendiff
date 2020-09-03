@@ -15,3 +15,6 @@ Utility features:
 
 ## php-gendiff:yml
 [![asciicast](https://asciinema.org/a/lQ5YZJ1YkaQFT37Y1NADuiFwh.svg)](https://asciinema.org/a/lQ5YZJ1YkaQFT37Y1NADuiFwh)
+
+## php-gendiff: nested structure
+[![asciicast](https://asciinema.org/a/ZSWbl6MQVHGAqB3IQzgeONthe.svg)](https://asciinema.org/a/ZSWbl6MQVHGAqB3IQzgeONthe)
