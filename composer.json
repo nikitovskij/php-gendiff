@@ -22,7 +22,8 @@
             "src/GenDiff.php",
             "src/parsers/JsonParser.php",
             "src/parsers/YmlParser.php",
-            "src/Renders/Pretty.php"
+            "src/Formatters/Pretty.php",
+            "src/Formatters/Plain.php"
         ]
     },
     "scripts": {
