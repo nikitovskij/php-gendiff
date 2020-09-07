@@ -3,9 +3,9 @@
 namespace App\Tests;
 
 use PHPUnit\Framework\TestCase;
+use App\Formatters;
 
 use function App\{getFileContent, checkDiff, makeCompare};
-use function App\Renders\Pretty\render;
 
 class GenDiffTest extends TestCase
 {
@@ -32,12 +32,12 @@ class GenDiffTest extends TestCase
     /**
      * @depends testCheckDiff
      */
-    public function testRenderPlainData(array $data)
+    public function testRenderPrettyData(array $data)
     {
         $expectedOutput = __DIR__ . '/fixtures/prettyPlainData.json';
         $expected = json_decode(file_get_contents($expectedOutput), true);
 
-        $this->assertSame($expected, render($data));
+        $this->assertSame($expected, Formatters\Pretty\render($data));
     }
 
     public function testRenderNestedData()
@@ -49,6 +49,19 @@ class GenDiffTest extends TestCase
         $filePathSecond   = __DIR__ . '/fixtures/file2.json';
 
         $actual = checkDiff($filePathFirst, $filePathSecond);
+
+        $this->assertSame($expected, $actual);
+    }
+
+    public function testPlainRenderData()
+    {
+        $expectedOutput = __DIR__ . '/fixtures/plainFormattedData.json';
+        $expected = json_decode(file_get_contents($expectedOutput), true);
+        
+        $filePathFirst    = __DIR__ . '/fixtures/file1.json';
+        $filePathSecond   = __DIR__ . '/fixtures/file2.json';
+
+        $actual = checkDiff($filePathFirst, $filePathSecond, 'plain');
 
         $this->assertSame($expected, $actual);
     }
