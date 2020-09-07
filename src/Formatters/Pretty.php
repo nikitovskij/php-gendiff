@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Renders\Pretty;
+namespace App\Formatters\Pretty;
 
 use Funct\Collection;
 
