@@ -25,9 +25,15 @@ Options:
   -h --help                 Show this screen
   -v --version              Show version
   --format <fmt>            Report format [default: pretty]
+
+Report formats:
+  <fmt>
+      pretty                Changes in data structure are explained by the symbols "+/-" 
+      plain                 Changes in data structure are explained by the text
+
 DOCOPT;
 
-$args = Docopt::handle($doc, ['version' => '0.1.0']);
+$args = Docopt::handle($doc, ['version' => '0.3.0']);
 $output = run($args);
 
 echo $output;
