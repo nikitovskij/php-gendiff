@@ -3,36 +3,54 @@
 namespace App;
 
 use Funct\Collection;
-use App\Parsers\JsonParser;
-use App\Parsers\YmlParser;
-
-use function App\Renders\Pretty\render;
+use App\Parsers;
+use App\Formatters;
 
 const FIRST_FILE = '<firstFile>';
 const SECOND_FILE = '<secondFile>';
+const OUTPUT_FORMAT = '--format';
 
 function run($args)
 {
     $firstFile  = $args[FIRST_FILE];
     $secondFile = $args[SECOND_FILE];
+    $outputFormat = $args[OUTPUT_FORMAT];
 
-    return checkDiff($firstFile, $secondFile);
+    return checkDiff($firstFile, $secondFile, $outputFormat);
 }
 
-function checkDiff($firstFile, $secondFile)
+function checkDiff($firstFile, $secondFile, $format = 'pretty')
 {
     $contentFirst = getFileContent($firstFile);
     $contentSecond = getFileContent($secondFile);
 
     $comparedTree = makeCompare($contentFirst, $contentSecond);
-    return render($comparedTree);
+    $formattedOutput = getFormattedData($format, $comparedTree);
+
+    return $formattedOutput;
+}
+
+function getFormattedData($format, $data)
+{
+    $handlers = [
+        'pretty' => fn($data) => Formatters\Pretty\render($data),
+        'plain'  => fn($data) => Formatters\Plain\render($data)
+    ];
+
+    if (!isset($handlers[$format])) {
+        throw new \Exception('Unknown report format.');
+    }
+
+    $handler = $handlers[$format] ?? $handlers['pretty'];
+
+    return $handler($data);
 }
 
 function getFileContent($file)
 {
     $filePath = realpath($file);
     if (!$filePath) {
-        throw new \Exception('File does not found.');
+        throw new \Exception('File not found.');
     }
 
     $fileExtension = pathinfo($filePath, PATHINFO_EXTENSION);
@@ -52,9 +70,9 @@ function getFileContent($file)
 function fileHandlers($fileExtension)
 {
     $handlers = [
-        'json' => fn($data) => JsonParser\parseJson($data),
-        'yml'  => fn($data) => YmlParser\parseYml($data),
-        'yaml' => fn($data) => YmlParser\parseYml($data)
+        'json' => fn($data) => Parsers\JsonParser\parseJson($data),
+        'yml'  => fn($data) => Parsers\YmlParser\parseYml($data),
+        'yaml' => fn($data) => Parsers\YmlParser\parseYml($data)
     ];
 
     return $handlers[$fileExtension];
@@ -87,7 +105,8 @@ function getComparingData($key, $contentFirst, $contentSecond)
 
     if ($isChanged) {
         return [
-            'key' => $key, 'state' => 'change',
+            'key' => $key,
+            'state' => 'change',
             'value' => [
                 'before' => $contentFirst[$key],
                 'after' => $contentSecond[$key]
