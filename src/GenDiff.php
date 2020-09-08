@@ -34,7 +34,8 @@ function getFormattedData($format, $data)
 {
     $handlers = [
         'pretty' => fn($data) => Formatters\Pretty\render($data),
-        'plain'  => fn($data) => Formatters\Plain\render($data)
+        'plain'  => fn($data) => Formatters\Plain\render($data),
+        'json'   => fn($data) => Formatters\Json\render($data),
     ];
 
     if (!isset($handlers[$format])) {
