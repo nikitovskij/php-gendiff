@@ -65,4 +65,17 @@ class GenDiffTest extends TestCase
 
         $this->assertSame($expected, $actual);
     }
+
+    public function testJsonRenderData()
+    {
+        $expectedOutput = __DIR__ . '/fixtures/jsonFormattedData.json';
+        $expected = file_get_contents($expectedOutput);
+        
+        $filePathFirst    = __DIR__ . '/fixtures/file1.json';
+        $filePathSecond   = __DIR__ . '/fixtures/file2.json';
+
+        $actual = checkDiff($filePathFirst, $filePathSecond, 'json');
+
+        $this->assertSame($expected, $actual);
+    }
 }
