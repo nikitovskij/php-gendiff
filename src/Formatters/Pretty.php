@@ -2,8 +2,6 @@
 
 namespace App\Formatters\Pretty;
 
-use Funct\Collection;
-
 const INDENT = 4;
 
 function render($tree)
