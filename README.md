@@ -33,3 +33,6 @@ $ composer require nikitovskij/php-gendiff
 
 ### php-gendiff: plain formatter
 [![asciicast](https://asciinema.org/a/3gqXaadTxO0lnZWhxAn38RHsk.svg)](https://asciinema.org/a/3gqXaadTxO0lnZWhxAn38RHsk)
+
+### php-gendiff: json formatter
+[![asciicast](https://asciinema.org/a/rmD6GkIOUQvSiN0P5Z82ZhLbW.svg)](https://asciinema.org/a/rmD6GkIOUQvSiN0P5Z82ZhLbW)

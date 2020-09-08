@@ -30,6 +30,7 @@ Report formats:
   <fmt>
       pretty                Changes in data structure are explained by the symbols "+/-" 
       plain                 Changes in data structure are explained by the text
+      json                  Structured output in JSON format
 
 DOCOPT;
 
