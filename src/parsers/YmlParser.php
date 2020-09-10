@@ -4,7 +4,7 @@ namespace App\Parsers\YmlParser;
 
 use Symfony\Component\Yaml\Yaml;
 
-function parseYml($data)
+function parseYml(string $data): array
 {
-    return Yaml::parse($data);
+    return (array) Yaml::parse($data);
 }

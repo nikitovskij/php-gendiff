@@ -2,24 +2,12 @@
 
 namespace App;
 
-use Funct\Collection;
 use App\Parsers;
 use App\Formatters;
 
-const FIRST_FILE = '<firstFile>';
-const SECOND_FILE = '<secondFile>';
-const OUTPUT_FORMAT = '--format';
+use function Funct\Collection\union;
 
-function run($args)
-{
-    $firstFile  = $args[FIRST_FILE];
-    $secondFile = $args[SECOND_FILE];
-    $outputFormat = $args[OUTPUT_FORMAT];
-
-    return checkDiff($firstFile, $secondFile, $outputFormat);
-}
-
-function checkDiff($firstFile, $secondFile, $format = 'pretty')
+function genDiff(string $firstFile, string $secondFile, string $format = 'pretty'): string
 {
     $contentFirst = getFileContent($firstFile);
     $contentSecond = getFileContent($secondFile);
@@ -30,7 +18,7 @@ function checkDiff($firstFile, $secondFile, $format = 'pretty')
     return $formattedOutput;
 }
 
-function getFormattedData($format, $data)
+function getFormattedData(string $format, array $data): string
 {
     $handlers = [
         'pretty' => fn($data) => Formatters\Pretty\render($data),
@@ -39,7 +27,7 @@ function getFormattedData($format, $data)
     ];
 
     if (!isset($handlers[$format])) {
-        throw new \Exception('Unknown report format.');
+        throw new \Exception("Unknown report format `{$format}`.\n");
     }
 
     $handler = $handlers[$format] ?? $handlers['pretty'];
@@ -47,41 +35,44 @@ function getFormattedData($format, $data)
     return $handler($data);
 }
 
-function getFileContent($file)
+function getFileContent(string $file): array
 {
     $filePath = realpath($file);
     if (!$filePath) {
-        throw new \Exception('File not found.');
+        throw new \Exception("File `{$file}` not found.\n");
     }
 
     $fileExtension = pathinfo($filePath, PATHINFO_EXTENSION);
-    if (!isset($fileExtension)) {
-        throw new \Exception('Unknown file extension.');
+    if ($fileExtension === '') {
+        throw new \Exception("Unknown file extension.\n");
     }
 
-    $fileHandler   = fileHandlers($fileExtension);
     $contentOfFile = file_get_contents($filePath);
-    if (!$fileExtension) {
-        throw new \Exception('Can not read the file.');
+    if (!$contentOfFile) {
+        throw new \Exception("Can not read the file `{$file}`.\n");
     }
 
-    return $fileHandler($contentOfFile);
+    return getParsedData($fileExtension, $contentOfFile);
 }
 
-function fileHandlers($fileExtension)
+function getParsedData(string $fileExtension, string $data): array
 {
-    $handlers = [
+    $parsers = [
         'json' => fn($data) => Parsers\JsonParser\parseJson($data),
         'yml'  => fn($data) => Parsers\YmlParser\parseYml($data),
         'yaml' => fn($data) => Parsers\YmlParser\parseYml($data)
     ];
 
-    return $handlers[$fileExtension];
+    if (!isset($parsers[$fileExtension])) {
+        throw new \Exception("Unsupported file format `{$fileExtension}`. Supported formats: json/yaml.\n");
+    }
+
+    return $parsers[$fileExtension]($data);
 }
 
-function makeCompare(array $contentFirst, array $contentSecond)
+function makeCompare(array $contentFirst, array $contentSecond): array
 {
-    $listOfKeys = Collection\union(array_keys($contentFirst), array_keys($contentSecond));
+    $listOfKeys = union(array_keys($contentFirst), array_keys($contentSecond));
     $sortedKeys = sortKeys($listOfKeys);
 
     $checkChildren = function ($key) use ($contentFirst, $contentSecond) {
@@ -98,7 +89,7 @@ function makeCompare(array $contentFirst, array $contentSecond)
     return array_values(array_map($checkChildren, $sortedKeys));
 }
 
-function getComparingData($key, $contentFirst, $contentSecond)
+function getComparingData(string $key, array $contentFirst, array $contentSecond): array
 {
     $isChanged = isItemsChanged($key, $contentFirst, $contentSecond);
     $isAdded   = isItemAdded($key, $contentFirst, $contentSecond);
@@ -126,7 +117,7 @@ function getComparingData($key, $contentFirst, $contentSecond)
     return ['key' => $key, 'state' => 'same', 'value' => $contentFirst[$key]];
 }
 
-function isItemsSame($key, array $dataFirst, array $dataSecond)
+function isItemsSame(string $key, array $dataFirst, array $dataSecond): bool
 {
     if (array_key_exists($key, $dataFirst)) {
         if (array_key_exists($key, $dataSecond)) {
@@ -137,7 +128,7 @@ function isItemsSame($key, array $dataFirst, array $dataSecond)
     return false;
 }
 
-function isItemsChanged($key, array $dataFirst, array $dataSecond)
+function isItemsChanged(string $key, array $dataFirst, array $dataSecond): bool
 {
     if (array_key_exists($key, $dataFirst)) {
         if (array_key_exists($key, $dataSecond)) {
@@ -148,17 +139,17 @@ function isItemsChanged($key, array $dataFirst, array $dataSecond)
     return false;
 }
 
-function isItemAdded($key, array $dataFirst, array $dataSecond)
+function isItemAdded(string $key, array $dataFirst, array $dataSecond): bool
 {
     return !array_key_exists($key, $dataFirst) && array_key_exists($key, $dataSecond);
 }
 
-function isItemDeleted($key, array $dataFirst, array $dataSecond)
+function isItemDeleted(string $key, array $dataFirst, array $dataSecond): bool
 {
     return array_key_exists($key, $dataFirst) && !array_key_exists($key, $dataSecond);
 }
 
-function sortKeys($listOfKeys)
+function sortKeys(array $listOfKeys): array
 {
     usort($listOfKeys, fn($firstKey, $secondKey) => $firstKey <=> $secondKey);
 

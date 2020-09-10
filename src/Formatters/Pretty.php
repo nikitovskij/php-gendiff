@@ -4,13 +4,13 @@ namespace App\Formatters\Pretty;
 
 const INDENT = 4;
 
-function render($tree)
+function render(array $tree): string
 {
     $prettyOutput = makePrettyOutput($tree, 0);
     return "{\n{$prettyOutput}\n}";
 }
 
-function makePrettyOutput($tree, $depth)
+function makePrettyOutput(array $tree, int $depth): string
 {
     $iter = function ($node) use ($depth) {
         return renderNode($node, $depth);
@@ -19,7 +19,7 @@ function makePrettyOutput($tree, $depth)
     return implode("\n", array_map($iter, $tree));
 }
 
-function renderNode($node, $depth)
+function renderNode(array $node, int $depth): string
 {
     ['key' => $key, 'state' => $state, 'value' => $value] = $node;
 
@@ -53,7 +53,11 @@ function renderNode($node, $depth)
 
     return "{$spaces}{$pairState}{$key}: {$value}";
 }
-
+/**
+ * @param array|string $data
+ * @param int $depth
+ * @return string
+ */
 function getSimpleOutput($data, $depth)
 {
     if (!is_array($data)) {
@@ -72,7 +76,7 @@ function getSimpleOutput($data, $depth)
     return "{\n" . $string . "\n{$spaces}}";
 }
 
-function getStateSymbol($state)
+function getStateSymbol(string $state): string
 {
     $symbols = [
         'same'   => "    ",
@@ -82,20 +86,22 @@ function getStateSymbol($state)
 
     return $symbols[$state];
 }
-
+/**
+ * @param bool|string $value
+ * @return string
+ */
 function replaceLogicValue($value)
 {
     $logicItems = [
         true  => "true",
         false => "false",
         null  => "null",
-        ''    => "''"
     ];
 
-    return $logicItems[$value] ?? $value;
+    return $logicItems[$value] ?? (string) $value;
 }
 
-function generateSpaces($depth)
+function generateSpaces(int $depth): string
 {
     return str_repeat(' ', INDENT * $depth);
 }

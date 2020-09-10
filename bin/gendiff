@@ -11,7 +11,7 @@ if (file_exists($autoloadPath1)) {
     require_once $autoloadPath2;
 }
 
-use function App\run;
+use function App\genDiff;
 
 $doc = <<<DOCOPT
 Generate diff
@@ -34,7 +34,8 @@ Report formats:
 
 DOCOPT;
 
-$args = Docopt::handle($doc, ['version' => '0.3.0']);
-$output = run($args);
+$args = Docopt::handle($doc, ['version' => '0.4.2']);
+['<firstFile>' => $firstFile, '<secondFile>' => $secondFile, '--format' => $outputFormat] = $args;
+$output = genDiff($firstFile, $secondFile, $outputFormat);
 
 echo $output;

@@ -2,7 +2,7 @@
 
 namespace App\Formatters\Json;
 
-function render($tree)
+function render(array $tree): string
 {
-    return json_encode($tree, JSON_PRETTY_PRINT);
+    return (string) json_encode($tree, JSON_PRETTY_PRINT);
 }

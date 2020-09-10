@@ -5,76 +5,81 @@ namespace App\Tests;
 use PHPUnit\Framework\TestCase;
 use App\Formatters;
 
-use function App\{getFileContent, checkDiff, makeCompare};
+use function App\{getFileContent, genDiff, makeCompare};
 
 class GenDiffTest extends TestCase
 {
-    public function testGetFileContent()
-    {
-        $filePath = __DIR__ . '/fixtures/before.json';
-        $expected = json_decode(file_get_contents($filePath), true);
+    private const PLAIN_FILE_BEFORE = __DIR__ . '/fixtures/before.json';
+    private const PLAIN_FILE_AFTER  = __DIR__ . '/fixtures/after.json';
+    private const PLAIN_FILE_BEFORE_YAML = __DIR__ . '/fixtures/before.yml';
+    private const PLAIN_FILE_AFTER_YAML  = __DIR__ . '/fixtures/after.yml';
+    private const FIRST_FILE        = __DIR__ . '/fixtures/file1.json';
+    private const SECOND_FILE       = __DIR__ . '/fixtures/file2.json';
 
-        $this->assertSame($expected, getFileContent($filePath));
+    private const FIXTURES_DIR = __DIR__ . '/fixtures/';
+    
+    /**
+     * @param string $fileName
+     * @return mixed
+     */
+    public function getExpectedData(string $fileName)
+    {
+        $filePath = self::FIXTURES_DIR . $fileName;
+        $fileContent = file_get_contents($filePath);
+
+        return json_decode((string) $fileContent, true);
     }
 
-    public function testCheckDiff()
+    public function testMakeCompare(): array
     {
-        $comparedDataPath = __DIR__ . '/fixtures/comparedPlainStructure.json';
-        $filePathFirst     = __DIR__ . '/fixtures/before.json';
-        $filePathSecond    = __DIR__ . '/fixtures/after.json';
-        $expected = json_decode(file_get_contents($comparedDataPath), true);
+        $expected = $this->getExpectedData('comparedPlainStructure.json');
+        
+        $firstFileContent  = getFileContent(self::PLAIN_FILE_BEFORE);
+        $secondFileContent = getFileContent(self::PLAIN_FILE_AFTER_YAML);
+        $actualJson        = makeCompare($firstFileContent, $secondFileContent);
 
-        $this->assertSame($expected, makeCompare(getFileContent($filePathFirst), getFileContent($filePathSecond)));
+        $firstFileContent  = getFileContent(self::PLAIN_FILE_BEFORE_YAML);
+        $secondFileContent = getFileContent(self::PLAIN_FILE_AFTER);
+        $actualYaml        = makeCompare($firstFileContent, $secondFileContent);
 
-        return makeCompare(getFileContent($filePathFirst), getFileContent($filePathSecond));
+        $this->assertSame($expected, $actualJson);
+        $this->assertSame($expected, $actualYaml);
+
+        return makeCompare(getFileContent(self::PLAIN_FILE_BEFORE), getFileContent(self::PLAIN_FILE_AFTER));
     }
 
     /**
-     * @depends testCheckDiff
+     * @depends testMakeCompare
      */
-    public function testRenderPrettyData(array $data)
+    public function testRenderPrettyData(array $data): void
     {
-        $expectedOutput = __DIR__ . '/fixtures/prettyPlainData.json';
-        $expected = json_decode(file_get_contents($expectedOutput), true);
+        $expected = $this->getExpectedData('prettyPlainData.json');
 
         $this->assertSame($expected, Formatters\Pretty\render($data));
     }
 
-    public function testRenderNestedData()
+    public function testRenderNestedData(): void
     {
-        $expectedOutput = __DIR__ . '/fixtures/prettyNestedData.json';
-        $expected = json_decode(file_get_contents($expectedOutput), true);
-        
-        $filePathFirst    = __DIR__ . '/fixtures/file1.json';
-        $filePathSecond   = __DIR__ . '/fixtures/file2.json';
-
-        $actual = checkDiff($filePathFirst, $filePathSecond);
+        $expected = $this->getExpectedData('prettyNestedData.json');
+        $actual = genDiff(self::FIRST_FILE, self::SECOND_FILE);
 
         $this->assertSame($expected, $actual);
     }
 
-    public function testPlainRenderData()
+    public function testPlainRenderData(): void
     {
-        $expectedOutput = __DIR__ . '/fixtures/plainFormattedData.json';
-        $expected = json_decode(file_get_contents($expectedOutput), true);
-        
-        $filePathFirst    = __DIR__ . '/fixtures/file1.json';
-        $filePathSecond   = __DIR__ . '/fixtures/file2.json';
-
-        $actual = checkDiff($filePathFirst, $filePathSecond, 'plain');
+        $expected = $this->getExpectedData('plainFormattedData.json');
+        $actual = genDiff(self::FIRST_FILE, self::SECOND_FILE, 'plain');
 
         $this->assertSame($expected, $actual);
     }
 
-    public function testJsonRenderData()
+    public function testJsonRenderData(): void
     {
-        $expectedOutput = __DIR__ . '/fixtures/jsonFormattedData.json';
+        $expectedOutput = self::FIXTURES_DIR . 'jsonFormattedData.json';
         $expected = file_get_contents($expectedOutput);
-        
-        $filePathFirst    = __DIR__ . '/fixtures/file1.json';
-        $filePathSecond   = __DIR__ . '/fixtures/file2.json';
 
-        $actual = checkDiff($filePathFirst, $filePathSecond, 'json');
+        $actual = genDiff(self::FIRST_FILE, self::SECOND_FILE, 'json');
 
         $this->assertSame($expected, $actual);
     }
