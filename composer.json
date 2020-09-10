@@ -1,6 +1,6 @@
 {
     "name": "nikitovskij/php-gendiff",
-    "description": "CLI utility for fainding discrepancies in configuration files.",
+    "description": "CLI utility for finding discrepancies in configuration files.",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -17,6 +17,9 @@
     "bin": [
         "bin/gendiff"
     ],
+    "scripts": {
+        "test": "phpunit tests"
+      },
     "autoload": {
         "files": [
             "src/GenDiff.php",
@@ -27,12 +30,9 @@
             "src/Formatters/Json.php"
         ]
     },
-    "scripts": {
-        "phpcs": "phpcs",
-        "test": "phpunit tests"
-    },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.0@dev",
-        "phpunit/phpunit": "^9.3"
+        "phpunit/phpunit": "^9.3",
+        "phpstan/phpstan": "^0.12.42"
     }
 }
