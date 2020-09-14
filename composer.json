@@ -19,15 +19,16 @@
     ],
     "scripts": {
         "test": "phpunit tests"
-      },
+    },
     "autoload": {
         "files": [
             "src/GenDiff.php",
-            "src/parsers/JsonParser.php",
-            "src/parsers/YmlParser.php",
+            "src/Parsers/JsonParser.php",
+            "src/Parsers/YmlParser.php",
             "src/Formatters/Pretty.php",
             "src/Formatters/Plain.php",
-            "src/Formatters/Json.php"
+            "src/Formatters/Json.php",
+            "src/Formatters/GetFormatter.php"
         ]
     },
     "require-dev": {

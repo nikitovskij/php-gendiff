@@ -1,6 +1,0 @@
-{
-    "0": { "key": "host", "state": "same", "value": "hexlet.io" },
-    "1": { "key": "proxy", "state": "delete", "value": "123.234.53.22" },
-    "2": { "key": "timeout", "state": "change", "value": { "before": 50, "after": 20 } },
-    "3": { "key": "verbose", "state": "new", "value": true }
-}

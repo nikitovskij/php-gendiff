@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Parsers\JsonParser;
+namespace App\Parsers;
 
 function parseJson(string $data): array
 {

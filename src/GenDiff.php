@@ -13,26 +13,9 @@ function genDiff(string $firstFile, string $secondFile, string $format = 'pretty
     $contentSecond = getFileContent($secondFile);
 
     $comparedTree = makeCompare($contentFirst, $contentSecond);
-    $formattedOutput = getFormattedData($format, $comparedTree);
+    $formattedOutput = Formatters\getFormattedData($format, $comparedTree);
 
     return $formattedOutput;
-}
-
-function getFormattedData(string $format, array $data): string
-{
-    $handlers = [
-        'pretty' => fn($data) => Formatters\Pretty\render($data),
-        'plain'  => fn($data) => Formatters\Plain\render($data),
-        'json'   => fn($data) => Formatters\Json\render($data),
-    ];
-
-    if (!isset($handlers[$format])) {
-        throw new \Exception("Unknown report format `{$format}`.\n");
-    }
-
-    $handler = $handlers[$format] ?? $handlers['pretty'];
-
-    return $handler($data);
 }
 
 function getFileContent(string $file): array
@@ -55,19 +38,19 @@ function getFileContent(string $file): array
     return getParsedData($fileExtension, $contentOfFile);
 }
 
-function getParsedData(string $fileExtension, string $data): array
+function getParsedData(string $parserType, string $data = ''): array
 {
     $parsers = [
-        'json' => fn($data) => Parsers\JsonParser\parseJson($data),
-        'yml'  => fn($data) => Parsers\YmlParser\parseYml($data),
-        'yaml' => fn($data) => Parsers\YmlParser\parseYml($data)
+        'json' => fn($data) => Parsers\parseJson($data),
+        'yml'  => fn($data) => Parsers\parseYml($data),
+        'yaml' => fn($data) => Parsers\parseYml($data)
     ];
 
-    if (!isset($parsers[$fileExtension])) {
-        throw new \Exception("Unsupported file format `{$fileExtension}`. Supported formats: json/yaml.\n");
+    if (!isset($parsers[$parserType])) {
+        throw new \Exception("Unsupported format `{$parserType}`. Supported formats: json/yaml.\n");
     }
 
-    return $parsers[$fileExtension]($data);
+    return $parsers[$parserType]($data);
 }
 
 function makeCompare(array $contentFirst, array $contentSecond): array
