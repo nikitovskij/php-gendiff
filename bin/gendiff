@@ -34,7 +34,7 @@ Report formats:
 
 DOCOPT;
 
-$args = Docopt::handle($doc, ['version' => '0.4.4']);
+$args = Docopt::handle($doc, ['version' => '0.4.5']);
 ['<firstFile>' => $firstFile, '<secondFile>' => $secondFile, '--format' => $outputFormat] = $args;
 $output = genDiff($firstFile, $secondFile, $outputFormat);
 

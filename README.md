@@ -10,6 +10,11 @@ Utility features:
 - Support for different input formats: yaml and json
 - Generating a report in plain text, stylish and json format
 
+## Requirements
+* PHP >= 7.4
+* <a href="https://github.com/phpfunct/funct">funct library</a>
+* <a href="http://docopt.org/">CLI parser (docopt)</a>
+
 ## Setup
 ```
 $ git clone https://github.com/nikitovskij/php-gendiff.git
@@ -20,6 +25,16 @@ $ make install
 ```
 $ composer require nikitovskij/php-gendiff
 ```
+
+## Testing
+```
+$ make test
+```
+## Lint
+```
+$ make lint 
+```
+
 ## Examples
 
 ### php-gendiff: json
