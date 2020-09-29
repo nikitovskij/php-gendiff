@@ -3,52 +3,53 @@
 namespace App;
 
 use App\Parsers;
-use App\Formatters;
 
+use function App\FormatHelper\formattedData;
 use function Funct\Collection\union;
+
+const SUPPORTED_FORMATS = ['json', 'yaml', 'yml'];
 
 function genDiff(string $firstFile, string $secondFile, string $format = 'pretty'): string
 {
-    $contentFirst = getFileContent($firstFile);
+    $contentFirst  = getFileContent($firstFile);
     $contentSecond = getFileContent($secondFile);
+    $comparedTree  = makeCompare($contentFirst, $contentSecond);
 
-    $comparedTree = makeCompare($contentFirst, $contentSecond);
-    $formattedOutput = Formatters\getFormattedData($format, $comparedTree);
-
-    return $formattedOutput;
+    return formattedData($format, $comparedTree);
 }
 
 function getFileContent(string $file): array
 {
-    $filePath = realpath($file);
-    if (!$filePath) {
+    $validFile = validateFile($file);
+
+    $fileFormat    = (string) pathinfo($validFile, PATHINFO_EXTENSION);
+    $contentOfFile = (string) file_get_contents($validFile);
+
+    return parsedData($fileFormat, $contentOfFile);
+}
+
+function validateFile(string $file): string
+{
+    $filePath = (string) realpath($file);
+    if (!file_exists($filePath)) {
         throw new \Exception("File `{$file}` not found.\n");
     }
 
-    $fileExtension = pathinfo($filePath, PATHINFO_EXTENSION);
-    if ($fileExtension === '') {
-        throw new \Exception("Unknown file extension.\n");
+    $fileFormat = pathinfo($filePath, PATHINFO_EXTENSION);
+    if (!in_array($fileFormat, SUPPORTED_FORMATS)) {
+        throw new \Exception("Unsupported file format.\n");
     }
 
-    $contentOfFile = file_get_contents($filePath);
-    if (!$contentOfFile) {
-        throw new \Exception("Can not read the file `{$file}`.\n");
-    }
-
-    return getParsedData($fileExtension, $contentOfFile);
+    return $file;
 }
 
-function getParsedData(string $parserType, string $data = ''): array
+function parsedData(string $parserType, string $data = ''): array
 {
     $parsers = [
         'json' => fn($data) => Parsers\parseJson($data),
         'yml'  => fn($data) => Parsers\parseYml($data),
         'yaml' => fn($data) => Parsers\parseYml($data)
     ];
-
-    if (!isset($parsers[$parserType])) {
-        throw new \Exception("Unsupported format `{$parserType}`. Supported formats: json/yaml.\n");
-    }
 
     return $parsers[$parserType]($data);
 }

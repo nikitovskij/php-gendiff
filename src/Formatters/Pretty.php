@@ -73,7 +73,7 @@ function getSimpleOutput($data, $depth)
     };
 
     $string = implode("\n", array_map($iter, $listOfKeys));
-    return "{\n" . $string . "\n{$spaces}}";
+    return "{\n{$string}\n{$spaces}}";
 }
 
 function getStateSymbol(string $state): string

@@ -17,9 +17,6 @@
     "bin": [
         "bin/gendiff"
     ],
-    "scripts": {
-        "test": "phpunit tests"
-    },
     "autoload": {
         "files": [
             "src/GenDiff.php",

@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Formatters;
+namespace App\FormatHelper;
 
-function getFormattedData(string $outputFormat, array $data = []): string
+use App\Formatters\{Pretty, Plain, Json};
+
+function formattedData(string $outputFormat, array $data = []): string
 {
     $formatters = [
         'pretty' => fn($data) => Pretty\render($data),
