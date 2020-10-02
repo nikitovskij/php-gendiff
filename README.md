@@ -37,17 +37,37 @@ $ make lint
 
 ## Examples
 
-### php-gendiff: json
-[![asciicast](https://asciinema.org/a/bguI3dSGS0Oucj41LmGyWx6aC.svg)](https://asciinema.org/a/bguI3dSGS0Oucj41LmGyWx6aC)
+#### php-gendiff: json
+```
+$ gendiff /path/to/file/first.json /path/to/file/second.json
+```
+Link to <a href="https://asciinema.org/a/bguI3dSGS0Oucj41LmGyWx6aC" target="_blank">asciinema</a>
 
-### php-gendiff: yml
-[![asciicast](https://asciinema.org/a/lQ5YZJ1YkaQFT37Y1NADuiFwh.svg)](https://asciinema.org/a/lQ5YZJ1YkaQFT37Y1NADuiFwh)
+#### php-gendiff: yml
+```
+$ gendiff /path/to/file/first.yml /path/to/file/second.yml
+```
+Link to <a href="https://asciinema.org/a/lQ5YZJ1YkaQFT37Y1NADuiFwh" target="_blank">asciinema</a>
 
-### php-gendiff: nested structure
-[![asciicast](https://asciinema.org/a/ZSWbl6MQVHGAqB3IQzgeONthe.svg)](https://asciinema.org/a/ZSWbl6MQVHGAqB3IQzgeONthe)
+#### php-gendiff: pretty format output
+The `pretty` output format is set by default.
+```
+$ gendiff /path/to/file/first.json /path/to/file/second.json
 
-### php-gendiff: plain formatter
-[![asciicast](https://asciinema.org/a/3gqXaadTxO0lnZWhxAn38RHsk.svg)](https://asciinema.org/a/3gqXaadTxO0lnZWhxAn38RHsk)
+or
 
-### php-gendiff: json formatter
-[![asciicast](https://asciinema.org/a/rmD6GkIOUQvSiN0P5Z82ZhLbW.svg)](https://asciinema.org/a/rmD6GkIOUQvSiN0P5Z82ZhLbW)
+$ gendiff --format pretty /path/to/file/first.json /path/to/file/second.json
+```
+Link to asciinema:<a href="https://asciinema.org/a/ZSWbl6MQVHGAqB3IQzgeONthe" target="_blank">asciinema</a>
+
+#### php-gendiff: plain format output
+```
+$ gendiff --format plain /path/to/file/first.json /path/to/file/second.json
+```
+Link to <a href="https://asciinema.org/a/3gqXaadTxO0lnZWhxAn38RHsk" target="_blank">asciinema</a>
+
+#### php-gendiff: json format output
+```
+$ gendiff --format json /path/to/file/first.json /path/to/file/second.json
+```
+Link to <a href="https://asciinema.org/a/rmD6GkIOUQvSiN0P5Z82ZhLbW" target="_blank">asciinema</a>

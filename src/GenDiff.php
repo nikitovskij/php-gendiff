@@ -7,43 +7,29 @@ use App\Parsers;
 use function App\FormatHelper\formattedData;
 use function Funct\Collection\union;
 
-const SUPPORTED_FORMATS = ['json', 'yaml', 'yml'];
-
-function genDiff(string $firstFile, string $secondFile, string $format = 'pretty'): string
+function genDiff(string $filePathOne, string $filePathTwo, string $format = 'pretty'): string
 {
-    $contentFirst  = getFileContent($firstFile);
-    $contentSecond = getFileContent($secondFile);
-    $comparedTree  = makeCompare($contentFirst, $contentSecond);
+    $contentOfFirstFile  = getFileContent($filePathOne);
+    $contentOfSecondFile = getFileContent($filePathTwo);
+    $comparedTree        = buildTree($contentOfFirstFile, $contentOfSecondFile);
 
     return formattedData($format, $comparedTree);
 }
 
-function getFileContent(string $file): array
+function getFileContent(string $filePath): array
 {
-    $validFile = validateFile($file);
-
-    $fileFormat    = (string) pathinfo($validFile, PATHINFO_EXTENSION);
-    $contentOfFile = (string) file_get_contents($validFile);
-
-    return parsedData($fileFormat, $contentOfFile);
-}
-
-function validateFile(string $file): string
-{
-    $filePath = (string) realpath($file);
+    $absoluteFilePath = (string) realpath($filePath);
     if (!file_exists($filePath)) {
-        throw new \Exception("File `{$file}` not found.\n");
+        throw new \Exception("File `{$filePath}` not found.\n");
     }
 
-    $fileFormat = pathinfo($filePath, PATHINFO_EXTENSION);
-    if (!in_array($fileFormat, SUPPORTED_FORMATS)) {
-        throw new \Exception("Unsupported file format.\n");
-    }
+    $fileFormat    = (string) pathinfo($absoluteFilePath, PATHINFO_EXTENSION);
+    $contentOfFile = (string) file_get_contents($absoluteFilePath);
 
-    return $file;
+    return getParsedData($fileFormat, $contentOfFile);
 }
 
-function parsedData(string $parserType, string $data = ''): array
+function getParsedData(string $parserType, string $data = ''): array
 {
     $parsers = [
         'json' => fn($data) => Parsers\parseJson($data),
@@ -54,51 +40,51 @@ function parsedData(string $parserType, string $data = ''): array
     return $parsers[$parserType]($data);
 }
 
-function makeCompare(array $contentFirst, array $contentSecond): array
+function buildTree(array $dataFromFirstFile, array $dataFromSecondFile): array
 {
-    $listOfKeys = union(array_keys($contentFirst), array_keys($contentSecond));
+    $listOfKeys = union(array_keys($dataFromFirstFile), array_keys($dataFromSecondFile));
     $sortedKeys = sortKeys($listOfKeys);
 
-    $checkChildren = function ($key) use ($contentFirst, $contentSecond) {
-        $firstChild  = $contentFirst[$key] ?? null;
-        $secondChild = $contentSecond[$key] ?? null;
+    $checkChildren = function ($key) use ($dataFromFirstFile, $dataFromSecondFile) {
+        $firstChild  = $dataFromFirstFile[$key] ?? null;
+        $secondChild = $dataFromSecondFile[$key] ?? null;
 
         if (is_array($firstChild) && is_array($secondChild)) {
-            return [ 'key' => $key, 'state' => 'same', 'value' => makeCompare($firstChild, $secondChild)];
+            return [ 'key' => $key, 'state' => 'same', 'value' => buildTree($firstChild, $secondChild)];
         }
 
-        return getComparingData($key, $contentFirst, $contentSecond);
+        return compareData($key, $dataFromFirstFile, $dataFromSecondFile);
     };
 
     return array_values(array_map($checkChildren, $sortedKeys));
 }
 
-function getComparingData(string $key, array $contentFirst, array $contentSecond): array
+function compareData(string $key, array $dataFromFirstFile, array $dataFromSecondFile): array
 {
-    $isChanged = isItemsChanged($key, $contentFirst, $contentSecond);
-    $isAdded   = isItemAdded($key, $contentFirst, $contentSecond);
-    $isDeleted = isItemDeleted($key, $contentFirst, $contentSecond);
+    $isChanged = isItemsChanged($key, $dataFromFirstFile, $dataFromSecondFile);
+    $isAdded   = isItemAdded($key, $dataFromFirstFile, $dataFromSecondFile);
+    $isDeleted = isItemDeleted($key, $dataFromFirstFile, $dataFromSecondFile);
 
     if ($isChanged) {
         return [
             'key' => $key,
             'state' => 'change',
             'value' => [
-                'before' => $contentFirst[$key],
-                'after' => $contentSecond[$key]
+                'before' => $dataFromFirstFile[$key],
+                'after' => $dataFromSecondFile[$key]
                 ]
             ];
     }
 
     if ($isAdded) {
-        return ['key' => $key, 'state' => 'new', 'value' => $contentSecond[$key]];
+        return ['key' => $key, 'state' => 'new', 'value' => $dataFromSecondFile[$key]];
     }
 
     if ($isDeleted) {
-        return ['key' => $key, 'state' => 'delete', 'value' => $contentFirst[$key]];
+        return ['key' => $key, 'state' => 'delete', 'value' => $dataFromFirstFile[$key]];
     }
 
-    return ['key' => $key, 'state' => 'same', 'value' => $contentFirst[$key]];
+    return ['key' => $key, 'state' => 'same', 'value' => $dataFromFirstFile[$key]];
 }
 
 function isItemsSame(string $key, array $dataFirst, array $dataSecond): bool

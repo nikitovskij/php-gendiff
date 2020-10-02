@@ -18,31 +18,66 @@ class GenDiffTest extends TestCase
 
     /**
      *
-     * @dataProvider fixturesProvider
+     * @dataProvider defaultOutputProvider
      */
-    public function testRenderData(string $file1, string $file2, string $expected, string $outputFormat): void
+    public function testDefaultFormatOutput(string $file1, string $file2, string $expectedFile): void
     {
-        $expected = file_get_contents($this->makeFilePath($expected));
-        $actual   = genDiff($this->makeFilePath($file1), $this->makeFilePath($file2), $outputFormat);
-
-        $this->assertSame($expected, $actual);
+        $expectedOutput = file_get_contents($this->makeFilePath($expectedFile));
+        $this->assertSame($expectedOutput, genDiff($this->makeFilePath($file1), $this->makeFilePath($file2)));
     }
 
-    public function fixturesProvider(): array
+    /**
+     *
+     * @dataProvider formattersProvider
+     */
+    public function testFormattersOutput(string $file1, string $file2, string $expectedFile, string $outputFormat): void
+    {
+        $expectedOutput = file_get_contents($this->makeFilePath($expectedFile));
+        $this->assertSame($expectedOutput, genDiff(
+            $this->makeFilePath($file1),
+            $this->makeFilePath($file2),
+            $outputFormat
+        ));
+    }
+
+    public function defaultOutputProvider(): array
     {
         return [
-            'prettyNested' => [
+            'default format output for JSON files' => [
                 'file1.json',
                 'file2.json',
-                'prettyNestedData.txt',
+                'prettyFormattedData.txt',
+            ],
+            'default format output for YAML files' => [
+                'file1.yml',
+                'file2.yml',
+                'prettyFormattedData.txt',
+            ],
+        ];
+    }
+    
+
+    public function formattersProvider(): array
+    {
+        return [
+            'pretty format output' => [
+                'file1.json',
+                'file2.json',
+                'prettyFormattedData.txt',
                 'pretty'
             ],
-            'plainFormatted' => [
+            'plain format output' => [
                 'file1.json',
                 'file2.json',
                 'plainFormattedData.txt',
                 'plain'
-            ]
+            ],
+            'json format output' => [
+                'file1.json',
+                'file2.json',
+                'jsonFormattedData.txt',
+                'json'
+            ],
         ];
     }
 }
