@@ -8,11 +8,9 @@ use function App\genDiff;
 
 class GenDiffTest extends TestCase
 {
-    private const FIXTURES_DIR = 'fixtures';
-    
     private function makeFilePath(string $fileName): string
     {
-        $parts = [__DIR__, self::FIXTURES_DIR, $fileName];
+        $parts = [__DIR__, 'fixtures', $fileName];
         return (string) realpath(implode(DIRECTORY_SEPARATOR, $parts));
     }
 

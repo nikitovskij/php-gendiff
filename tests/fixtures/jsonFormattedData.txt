@@ -15,12 +15,12 @@
             },
             {
                 "key": "setting2",
-                "state": "delete",
+                "state": "deleted",
                 "value": 200
             },
             {
                 "key": "setting3",
-                "state": "change",
+                "state": "changed",
                 "value": {
                     "before": true,
                     "after": {
@@ -50,7 +50,7 @@
                         "value": [
                             {
                                 "key": "wow",
-                                "state": "change",
+                                "state": "changed",
                                 "value": {
                                     "before": "too much",
                                     "after": "so much"
@@ -78,7 +78,7 @@
         "value": [
             {
                 "key": "baz",
-                "state": "change",
+                "state": "changed",
                 "value": {
                     "before": "bas",
                     "after": "bars"
@@ -91,7 +91,7 @@
             },
             {
                 "key": "nest",
-                "state": "change",
+                "state": "changed",
                 "value": {
                     "before": {
                         "key": "value"
@@ -103,7 +103,7 @@
     },
     {
         "key": "group2",
-        "state": "delete",
+        "state": "deleted",
         "value": {
             "abc": 12345,
             "deep": {

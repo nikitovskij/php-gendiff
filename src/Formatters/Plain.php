@@ -35,7 +35,7 @@ function nodeProcessing($node, $chainOfKeys)
     ['key' => $key, 'state' => $state, 'value' => $value] = $node;
 
     if (is_array($value)) {
-        if ($state !== 'change') {
+        if ($state !== 'changed') {
             $child = reset($value);
 
             if (isset($child['state'])) {
@@ -46,7 +46,7 @@ function nodeProcessing($node, $chainOfKeys)
         }
     }
 
-    if ($state === 'change') {
+    if ($state === 'changed') {
         $value['before'] = getSimpleOutput($value['before']);
         $value['after'] = getSimpleOutput($value['after']);
     } else {
@@ -74,10 +74,10 @@ function getSimpleOutput($data): string
 function genSentence(array $item): string
 {
     $typeOfChanges = [
-        'same'   => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was not changed"),
-        'new'    => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was added with value: '{$value}'"),
-        'delete' => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was removed"),
-        'change' => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was updated. " .
+        'same'    => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was not changed"),
+        'new'     => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was added with value: '{$value}'"),
+        'deleted' => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was removed"),
+        'changed' => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was updated. " .
                                                     "From '{$value['before']}' to '{$value['after']}'")
     ];
     

@@ -3,10 +3,11 @@
 namespace App\Formatters\Pretty;
 
 const INDENT = 4;
+const INITIAL_DEPTH = 0;
 
 function render(array $tree): string
 {
-    $prettyOutput = makePrettyOutput($tree, 0);
+    $prettyOutput = makePrettyOutput($tree, INITIAL_DEPTH);
     return "{\n{$prettyOutput}\n}";
 }
 
@@ -26,7 +27,7 @@ function renderNode(array $node, int $depth): string
     $spaces = generateSpaces($depth);
     
     if (is_array($value)) {
-        if ($state !== 'change') {
+        if ($state !== 'changed') {
             $children = reset($value);
             $pairState = getStateSymbol($state);
             
@@ -40,7 +41,7 @@ function renderNode(array $node, int $depth): string
             return "{$spaces}{$pairState}{$key}: {$value}";
         }
         
-        if ($state === 'change') {
+        if ($state === 'changed') {
             $beforeStr = getSimpleOutput($value['before'], $depth + 1);
             $afterStr  = getSimpleOutput($value['after'], $depth + 1);
             
@@ -79,9 +80,9 @@ function getSimpleOutput($data, $depth)
 function getStateSymbol(string $state): string
 {
     $symbols = [
-        'same'   => "    ",
-        'new'    => "  + ",
-        'delete' => "  - ",
+        'same'    => "    ",
+        'new'     => "  + ",
+        'deleted' => "  - ",
     ];
 
     return $symbols[$state];

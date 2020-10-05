@@ -11,7 +11,7 @@ function genDiff(string $filePathOne, string $filePathTwo, string $format = 'pre
 {
     $contentOfFirstFile  = getFileContent($filePathOne);
     $contentOfSecondFile = getFileContent($filePathTwo);
-    $comparedTree        = buildTree($contentOfFirstFile, $contentOfSecondFile);
+    $comparedTree        = buildDiffTree($contentOfFirstFile, $contentOfSecondFile);
 
     return formattedData($format, $comparedTree);
 }
@@ -24,12 +24,12 @@ function getFileContent(string $filePath): array
     }
 
     $fileFormat    = (string) pathinfo($absoluteFilePath, PATHINFO_EXTENSION);
-    $contentOfFile = (string) file_get_contents($absoluteFilePath);
+    $contentOfFile = parseData($fileFormat, (string) file_get_contents($absoluteFilePath));
 
-    return getParsedData($fileFormat, $contentOfFile);
+    return $contentOfFile;
 }
 
-function getParsedData(string $parserType, string $data = ''): array
+function parseData(string $parserType, string $data = ''): array
 {
     $parsers = [
         'json' => fn($data) => Parsers\parseJson($data),
@@ -37,91 +37,54 @@ function getParsedData(string $parserType, string $data = ''): array
         'yaml' => fn($data) => Parsers\parseYml($data)
     ];
 
+    if (!isset($parsers[$parserType])) {
+        throw new \Exception('Unsupported file format');
+    }
+
     return $parsers[$parserType]($data);
 }
 
-function buildTree(array $dataFromFirstFile, array $dataFromSecondFile): array
+function buildDiffTree(array $dataFirst, array $dataSecond): array
 {
-    $listOfKeys = union(array_keys($dataFromFirstFile), array_keys($dataFromSecondFile));
-    $sortedKeys = sortKeys($listOfKeys);
+    $listOfKeys = union(array_keys($dataFirst), array_keys($dataSecond));
+    sort($listOfKeys);
 
-    $checkChildren = function ($key) use ($dataFromFirstFile, $dataFromSecondFile) {
-        $firstChild  = $dataFromFirstFile[$key] ?? null;
-        $secondChild = $dataFromSecondFile[$key] ?? null;
+    $makeComparison = function ($key) use ($dataFirst, $dataSecond) {
+        $firstDataValue  = $dataFirst[$key] ?? null;
+        $secondDataValue = $dataSecond[$key] ?? null;
 
-        if (is_array($firstChild) && is_array($secondChild)) {
-            return [ 'key' => $key, 'state' => 'same', 'value' => buildTree($firstChild, $secondChild)];
+        if (is_array($firstDataValue) && is_array($secondDataValue)) {
+            return [ 'key' => $key, 'state' => 'same', 'value' => buildDiffTree($firstDataValue, $secondDataValue)];
         }
 
-        return compareData($key, $dataFromFirstFile, $dataFromSecondFile);
+        return compareData($key, $dataFirst, $dataSecond);
     };
 
-    return array_values(array_map($checkChildren, $sortedKeys));
+    return array_values(array_map($makeComparison, $listOfKeys));
 }
 
-function compareData(string $key, array $dataFromFirstFile, array $dataFromSecondFile): array
+function compareData(string $key, array $dataFirst, array $dataSecond): array
 {
-    $isChanged = isItemsChanged($key, $dataFromFirstFile, $dataFromSecondFile);
-    $isAdded   = isItemAdded($key, $dataFromFirstFile, $dataFromSecondFile);
-    $isDeleted = isItemDeleted($key, $dataFromFirstFile, $dataFromSecondFile);
-
-    if ($isChanged) {
-        return [
-            'key' => $key,
-            'state' => 'change',
-            'value' => [
-                'before' => $dataFromFirstFile[$key],
-                'after' => $dataFromSecondFile[$key]
-                ]
-            ];
-    }
-
-    if ($isAdded) {
-        return ['key' => $key, 'state' => 'new', 'value' => $dataFromSecondFile[$key]];
-    }
-
-    if ($isDeleted) {
-        return ['key' => $key, 'state' => 'delete', 'value' => $dataFromFirstFile[$key]];
-    }
-
-    return ['key' => $key, 'state' => 'same', 'value' => $dataFromFirstFile[$key]];
-}
-
-function isItemsSame(string $key, array $dataFirst, array $dataSecond): bool
-{
-    if (array_key_exists($key, $dataFirst)) {
-        if (array_key_exists($key, $dataSecond)) {
-            return $dataFirst[$key] === $dataSecond[$key];
+    if (array_key_exists($key, $dataFirst) && array_key_exists($key, $dataSecond)) {
+        if ($dataFirst[$key] !== $dataSecond[$key]) {
+            return [
+                'key'   => $key,
+                'state' => 'changed',
+                'value' => [
+                    'before' => $dataFirst[$key],
+                    'after'  => $dataSecond[$key]
+                    ]
+                ];
         }
     }
 
-    return false;
-}
-
-function isItemsChanged(string $key, array $dataFirst, array $dataSecond): bool
-{
-    if (array_key_exists($key, $dataFirst)) {
-        if (array_key_exists($key, $dataSecond)) {
-            return $dataFirst[$key] !== $dataSecond[$key];
-        }
+    if (!array_key_exists($key, $dataFirst) && array_key_exists($key, $dataSecond)) {
+        return ['key' => $key, 'state' => 'new', 'value' => $dataSecond[$key]];
     }
 
-    return false;
-}
+    if (array_key_exists($key, $dataFirst) && !array_key_exists($key, $dataSecond)) {
+        return ['key' => $key, 'state' => 'deleted', 'value' => $dataFirst[$key]];
+    }
 
-function isItemAdded(string $key, array $dataFirst, array $dataSecond): bool
-{
-    return !array_key_exists($key, $dataFirst) && array_key_exists($key, $dataSecond);
-}
-
-function isItemDeleted(string $key, array $dataFirst, array $dataSecond): bool
-{
-    return array_key_exists($key, $dataFirst) && !array_key_exists($key, $dataSecond);
-}
-
-function sortKeys(array $listOfKeys): array
-{
-    usort($listOfKeys, fn($firstKey, $secondKey) => $firstKey <=> $secondKey);
-
-    return $listOfKeys;
+    return ['key' => $key, 'state' => 'same', 'value' => $dataFirst[$key]];
 }
