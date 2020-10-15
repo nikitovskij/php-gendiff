@@ -4,37 +4,36 @@ namespace App;
 
 use App\Parsers;
 
-use function App\FormatHelper\formattedData;
+use function App\Formatters\GetFormatter\formattingData;
 use function Funct\Collection\union;
 
 function genDiff(string $filePathOne, string $filePathTwo, string $format = 'pretty'): string
 {
-    $contentOfFirstFile  = getFileContent($filePathOne);
-    $contentOfSecondFile = getFileContent($filePathTwo);
-    $comparedTree        = buildDiffTree($contentOfFirstFile, $contentOfSecondFile);
+    $contentOfFirstFile  = read($filePathOne);
+    $contentOfSecondFile = read($filePathTwo);
+    $dataFirst  = parseData((string) pathinfo($filePathOne, PATHINFO_EXTENSION), $contentOfFirstFile);
+    $dataSecond = parseData((string) pathinfo($filePathTwo, PATHINFO_EXTENSION), $contentOfSecondFile);
 
-    return formattedData($format, $comparedTree);
+    $diffTree = genDiffTree($dataFirst, $dataSecond);
+
+    return formattingData($format, $diffTree);
 }
 
-function getFileContent(string $filePath): array
+function read(string $filePath): string
 {
-    $absoluteFilePath = (string) realpath($filePath);
     if (!file_exists($filePath)) {
         throw new \Exception("File `{$filePath}` not found.\n");
     }
 
-    $fileFormat    = (string) pathinfo($absoluteFilePath, PATHINFO_EXTENSION);
-    $contentOfFile = parseData($fileFormat, (string) file_get_contents($absoluteFilePath));
-
-    return $contentOfFile;
+    return (string) file_get_contents((string) realpath($filePath));
 }
 
-function parseData(string $parserType, string $data = ''): array
+function parseData(string $parserType, string $data): array
 {
     $parsers = [
-        'json' => fn($data) => Parsers\parseJson($data),
-        'yml'  => fn($data) => Parsers\parseYml($data),
-        'yaml' => fn($data) => Parsers\parseYml($data)
+        'json' => fn ($data) => Parsers\parseJson($data),
+        'yml'  => fn ($data) => Parsers\parseYml($data),
+        'yaml' => fn ($data) => Parsers\parseYml($data)
     ];
 
     if (!isset($parsers[$parserType])) {
@@ -44,47 +43,48 @@ function parseData(string $parserType, string $data = ''): array
     return $parsers[$parserType]($data);
 }
 
-function buildDiffTree(array $dataFirst, array $dataSecond): array
+function genDiffTree(array $dataFirst, array $dataSecond): array
 {
     $listOfKeys = union(array_keys($dataFirst), array_keys($dataSecond));
     sort($listOfKeys);
-
-    $makeComparison = function ($key) use ($dataFirst, $dataSecond) {
-        $firstDataValue  = $dataFirst[$key] ?? null;
-        $secondDataValue = $dataSecond[$key] ?? null;
-
-        if (is_array($firstDataValue) && is_array($secondDataValue)) {
-            return [ 'key' => $key, 'state' => 'same', 'value' => buildDiffTree($firstDataValue, $secondDataValue)];
-        }
-
-        return compareData($key, $dataFirst, $dataSecond);
-    };
-
-    return array_values(array_map($makeComparison, $listOfKeys));
+    return array_map(fn ($key) => makeComparison($key, $dataFirst, $dataSecond), $listOfKeys);
 }
 
-function compareData(string $key, array $dataFirst, array $dataSecond): array
+function makeComparison(string $key, array $dataFirst, array $dataSecond): array
 {
+    $dataValueFirst  = $dataFirst[$key] ?? false;
+    $dataValueSecond = $dataSecond[$key] ?? false;
+
+    if (is_array($dataValueFirst) && is_array($dataValueSecond)) {
+        $children = array_values(genDiffTree($dataValueFirst, $dataValueSecond));
+        return makeNode('nested', $key, null, $children);
+    }
+
     if (array_key_exists($key, $dataFirst) && array_key_exists($key, $dataSecond)) {
-        if ($dataFirst[$key] !== $dataSecond[$key]) {
-            return [
-                'key'   => $key,
-                'state' => 'changed',
-                'value' => [
-                    'before' => $dataFirst[$key],
-                    'after'  => $dataSecond[$key]
-                    ]
-                ];
+        if ($dataValueFirst !== $dataValueSecond) {
+            return makeNode('changed', $key, ['before' => $dataValueFirst, 'after' => $dataValueSecond]);
         }
     }
 
     if (!array_key_exists($key, $dataFirst) && array_key_exists($key, $dataSecond)) {
-        return ['key' => $key, 'state' => 'new', 'value' => $dataSecond[$key]];
+        return makeNode('new', $key, $dataValueSecond);
     }
 
     if (array_key_exists($key, $dataFirst) && !array_key_exists($key, $dataSecond)) {
-        return ['key' => $key, 'state' => 'deleted', 'value' => $dataFirst[$key]];
+        return makeNode('deleted', $key, $dataValueFirst);
     }
 
-    return ['key' => $key, 'state' => 'same', 'value' => $dataFirst[$key]];
+    return makeNode('unchanged', $key, $dataValueFirst);
+}
+
+/**
+ * @param string $state
+ * @param string $key
+ * @param null|string|array $value
+ * @param null|array $children
+ * @return array
+ */
+function makeNode($state, $key, $value, $children = null)
+{
+    return ['key' => $key, 'state' => $state, 'value' => $value, 'children' => $children];
 }

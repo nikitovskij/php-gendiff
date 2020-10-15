@@ -1,20 +1,22 @@
 <?php
 
-namespace App\FormatHelper;
+namespace App\Formatters\GetFormatter;
 
-use App\Formatters\{Pretty, Plain, Json};
+use function App\Formatters\Pretty\render as prettyRender;
+use function App\Formatters\Plain\render as plainRender;
+use function App\Formatters\Json\render as jsonRender;
 
-function formattedData(string $outputFormat, array $data = []): string
+function formattingData(string $renderFormat, array $data = []): string
 {
     $formatters = [
-        'pretty' => fn($data) => Pretty\render($data),
-        'plain'  => fn($data) => Plain\render($data),
-        'json'   => fn($data) => Json\render($data),
+        'pretty' => fn($data) => prettyRender($data),
+        'plain'  => fn($data) => plainRender($data),
+        'json'   => fn($data) => jsonRender($data),
     ];
 
-    if (!isset($formatters[$outputFormat])) {
-        throw new \Exception("Unknown report format `{$outputFormat}`.\n");
+    if (!isset($formatters[$renderFormat])) {
+        throw new \Exception("Unknown report format `{$renderFormat}`.\n");
     }
 
-    return $formatters[$outputFormat]($data);
+    return $formatters[$renderFormat]($data);
 }

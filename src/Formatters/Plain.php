@@ -4,18 +4,18 @@ namespace App\Formatters\Plain;
 
 use function Funct\Collection\flattenAll;
 
+const START_OF_KEY_CHAIN = '';
+
 function render(array $tree): string
 {
     return implode("\n", makePlainOutput($tree));
 }
 
-
 function makePlainOutput(array $tree): array
 {
-    $collection = collectData($tree, '');
+    $collection = collectData($tree, START_OF_KEY_CHAIN);
     return flattenAll($collection);
 }
-
 
 function collectData(array $tree, string $chainOfKeys): array
 {
@@ -25,6 +25,7 @@ function collectData(array $tree, string $chainOfKeys): array
 
     return array_map($iter, $tree);
 }
+
 /**
  * @param array $node
  * @param string $chainOfKeys
@@ -32,37 +33,29 @@ function collectData(array $tree, string $chainOfKeys): array
  */
 function nodeProcessing($node, $chainOfKeys)
 {
-    ['key' => $key, 'state' => $state, 'value' => $value] = $node;
+    ['key' => $key, 'state' => $state, 'value' => $value, 'children' => $children] = $node;
 
-    if (is_array($value)) {
-        if ($state !== 'changed') {
-            $child = reset($value);
-
-            if (isset($child['state'])) {
-                $chainOfKeys .= "{$key}.";
-
-                return collectData($value, $chainOfKeys);
-            }
-        }
+    if ($state === 'nested') {
+        $chainOfKeys .= "{$key}.";
+        return collectData($children, $chainOfKeys);
     }
 
     if ($state === 'changed') {
-        $value['before'] = getSimpleOutput($value['before']);
-        $value['after'] = getSimpleOutput($value['after']);
+        $stringValue['before'] = stringifyData($value['before']);
+        $stringValue['after']  = stringifyData($value['after']);
     } else {
-        $value = getSimpleOutput($value);
+        $stringValue = stringifyData($value);
     }
 
     $chainOfKeys .= $key;
-
-    return genSentence([$chainOfKeys, $state, $value]);
+    return generatePlainSentence([$chainOfKeys, $state, $stringValue]);
 }
 
 /**
  * @param array|string $data
  * @return string
  */
-function getSimpleOutput($data): string
+function stringifyData($data): string
 {
     if (!is_array($data)) {
         return replaceLogicValue($data);
@@ -71,13 +64,13 @@ function getSimpleOutput($data): string
     return "[complex value]";
 }
 
-function genSentence(array $item): string
+function generatePlainSentence(array $item): string
 {
     $typeOfChanges = [
-        'same'    => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was not changed"),
-        'new'     => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was added with value: '{$value}'"),
-        'deleted' => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was removed"),
-        'changed' => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was updated. " .
+        'unchanged' => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was not changed"),
+        'new'       => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was added with value: '{$value}'"),
+        'deleted'   => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was removed"),
+        'changed'   => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was updated. " .
                                                     "From '{$value['before']}' to '{$value['after']}'")
     ];
     
@@ -85,6 +78,7 @@ function genSentence(array $item): string
 
     return $typeOfChanges[$state]($chainOfKeys, $value);
 }
+
 /**
  * @param bool|string $value
  * @return string

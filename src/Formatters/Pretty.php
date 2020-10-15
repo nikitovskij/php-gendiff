@@ -4,6 +4,7 @@ namespace App\Formatters\Pretty;
 
 const INDENT = 4;
 const INITIAL_DEPTH = 0;
+const NODE_STATE_SYMBOLS = ['nested' => '    ', 'new' => '  + ', 'deleted' => '  - ', 'unchanged' => '    '];
 
 function render(array $tree): string
 {
@@ -22,71 +23,50 @@ function makePrettyOutput(array $tree, int $depth): string
 
 function renderNode(array $node, int $depth): string
 {
-    ['key' => $key, 'state' => $state, 'value' => $value] = $node;
-
-    $spaces = generateSpaces($depth);
+    ['key' => $key, 'state' => $state, 'value' => $value, 'children' => $children] = $node;
+    $indentedLine = generateIndentedLine($depth);
     
-    if (is_array($value)) {
-        if ($state !== 'changed') {
-            $children = reset($value);
-            $pairState = getStateSymbol($state);
-            
-            if (isset($children['state'])) {
-                $value  = makePrettyOutput($value, $depth + 1);
-                $endSpaces = generateSpaces($depth + 1);
-                return "{$spaces}{$pairState}{$key}: {\n{$value}\n{$endSpaces}}";
-            }
-            
-            $value  = getSimpleOutput($value, $depth + 1);
-            return "{$spaces}{$pairState}{$key}: {$value}";
-        }
-        
-        if ($state === 'changed') {
-            $beforeStr = getSimpleOutput($value['before'], $depth + 1);
-            $afterStr  = getSimpleOutput($value['after'], $depth + 1);
-            
-            return "{$spaces}  - {$key}: {$beforeStr}\n" . "{$spaces}  + {$key}: {$afterStr}";
-        }
+    if ($state === 'nested') {
+        $value = makePrettyOutput($children, $depth + 1);
+        $indentedLineAfter = generateIndentedLine($depth + 1);
+        return "{$indentedLine}" . NODE_STATE_SYMBOLS[$state] . "{$key}: {\n{$value}\n{$indentedLineAfter}}";
     }
 
-    $value = getSimpleOutput($value, $depth + 1);
-    $pairState = getStateSymbol($state);
+    if ($state === 'changed') {
+        $valueBefore = stringifyData($value['before'], $depth + 1);
+        $valueAfter  = stringifyData($value['after'], $depth + 1);
 
-    return "{$spaces}{$pairState}{$key}: {$value}";
+        return "{$indentedLine}" . NODE_STATE_SYMBOLS['deleted'] . "{$key}: {$valueBefore}\n"
+                . "{$indentedLine}" . NODE_STATE_SYMBOLS['new'] . "{$key}: {$valueAfter}";
+    }
+
+    $valueStr = stringifyData($value, $depth + 1);
+    return "{$indentedLine}" . NODE_STATE_SYMBOLS[$state] . "{$key}: {$valueStr}";
 }
+
 /**
  * @param array|string $data
  * @param int $depth
  * @return string
  */
-function getSimpleOutput($data, $depth)
+function stringifyData($data, $depth)
 {
     if (!is_array($data)) {
         return replaceLogicValue($data);
     }
 
     $listOfKeys = array_keys($data);
-    $spaces = generateSpaces($depth);
+    $indentedLine = generateIndentedLine($depth);
 
-    $iter = function ($key) use ($data, $spaces, $depth) {
-        $value  = getSimpleOutput($data[$key], $depth + 1);
-        return "{$spaces}    {$key}: {$value}";
+    $iter = function ($key) use ($data, $indentedLine, $depth) {
+        $value  = stringifyData($data[$key], $depth + 1);
+        return "{$indentedLine}" . NODE_STATE_SYMBOLS['unchanged'] . "{$key}: {$value}";
     };
 
-    $string = implode("\n", array_map($iter, $listOfKeys));
-    return "{\n{$string}\n{$spaces}}";
+    $dataString = implode("\n", array_map($iter, $listOfKeys));
+    return "{\n{$dataString}\n{$indentedLine}}";
 }
 
-function getStateSymbol(string $state): string
-{
-    $symbols = [
-        'same'    => "    ",
-        'new'     => "  + ",
-        'deleted' => "  - ",
-    ];
-
-    return $symbols[$state];
-}
 /**
  * @param bool|string $value
  * @return string
@@ -102,7 +82,7 @@ function replaceLogicValue($value)
     return $logicItems[$value] ?? (string) $value;
 }
 
-function generateSpaces(int $depth): string
+function generateIndentedLine(int $depth): string
 {
     return str_repeat(' ', INDENT * $depth);
 }
