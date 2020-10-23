@@ -4,7 +4,7 @@ namespace App\Parsers;
 
 use Symfony\Component\Yaml\Yaml;
 
-function parseYml(string $data): array
+function parseYml(string $data): object
 {
-    return (array) Yaml::parse($data);
+    return Yaml::parse($data, Yaml::PARSE_OBJECT_FOR_MAP);
 }

@@ -2,17 +2,20 @@
 
 namespace App;
 
-use App\Parsers;
-
-use function App\Formatters\GetFormatter\formattingData;
+use function App\Formatters\FormattersHelper\formattingData;
 use function Funct\Collection\union;
+use function App\Parsers\ParsersHelper\parseData;
 
 function genDiff(string $filePathOne, string $filePathTwo, string $format = 'pretty'): string
 {
     $contentOfFirstFile  = read($filePathOne);
     $contentOfSecondFile = read($filePathTwo);
-    $dataFirst  = parseData((string) pathinfo($filePathOne, PATHINFO_EXTENSION), $contentOfFirstFile);
-    $dataSecond = parseData((string) pathinfo($filePathTwo, PATHINFO_EXTENSION), $contentOfSecondFile);
+
+    $fileFormatFirst = (string) pathinfo($filePathOne, PATHINFO_EXTENSION);
+    $fileFormatSecond = (string) pathinfo($filePathTwo, PATHINFO_EXTENSION);
+
+    $dataFirst  = parseData($fileFormatFirst, $contentOfFirstFile);
+    $dataSecond = parseData($fileFormatSecond, $contentOfSecondFile);
 
     $diffTree = genDiffTree($dataFirst, $dataSecond);
 
@@ -28,49 +31,35 @@ function read(string $filePath): string
     return (string) file_get_contents((string) realpath($filePath));
 }
 
-function parseData(string $parserType, string $data): array
+function genDiffTree(object $dataFirst, object $dataSecond): array
 {
-    $parsers = [
-        'json' => fn ($data) => Parsers\parseJson($data),
-        'yml'  => fn ($data) => Parsers\parseYml($data),
-        'yaml' => fn ($data) => Parsers\parseYml($data)
-    ];
-
-    if (!isset($parsers[$parserType])) {
-        throw new \Exception('Unsupported file format');
-    }
-
-    return $parsers[$parserType]($data);
-}
-
-function genDiffTree(array $dataFirst, array $dataSecond): array
-{
-    $listOfKeys = union(array_keys($dataFirst), array_keys($dataSecond));
+    $listOfKeys = union(array_keys(get_object_vars($dataFirst)), array_keys(get_object_vars($dataSecond)));
     sort($listOfKeys);
     return array_map(fn ($key) => makeComparison($key, $dataFirst, $dataSecond), $listOfKeys);
 }
 
-function makeComparison(string $key, array $dataFirst, array $dataSecond): array
+function makeComparison(string $key, object $dataFirst, object $dataSecond): array
 {
-    $dataValueFirst  = $dataFirst[$key] ?? false;
-    $dataValueSecond = $dataSecond[$key] ?? false;
 
-    if (is_array($dataValueFirst) && is_array($dataValueSecond)) {
+    $dataValueFirst  = $dataFirst->$key ?? false;
+    $dataValueSecond = $dataSecond->$key ?? false;
+
+    if (is_object($dataValueFirst) && is_object($dataValueSecond)) {
         $children = array_values(genDiffTree($dataValueFirst, $dataValueSecond));
         return makeNode('nested', $key, null, $children);
     }
 
-    if (array_key_exists($key, $dataFirst) && array_key_exists($key, $dataSecond)) {
+    if (property_exists($dataFirst, $key) && property_exists($dataSecond, $key)) {
         if ($dataValueFirst !== $dataValueSecond) {
             return makeNode('changed', $key, ['before' => $dataValueFirst, 'after' => $dataValueSecond]);
         }
     }
 
-    if (!array_key_exists($key, $dataFirst) && array_key_exists($key, $dataSecond)) {
+    if (!property_exists($dataFirst, $key) && property_exists($dataSecond, $key)) {
         return makeNode('new', $key, $dataValueSecond);
     }
 
-    if (array_key_exists($key, $dataFirst) && !array_key_exists($key, $dataSecond)) {
+    if (property_exists($dataFirst, $key) && !property_exists($dataSecond, $key)) {
         return makeNode('deleted', $key, $dataValueFirst);
     }
 
@@ -80,7 +69,7 @@ function makeComparison(string $key, array $dataFirst, array $dataSecond): array
 /**
  * @param string $state
  * @param string $key
- * @param null|string|array $value
+ * @param null|object|string|array $value
  * @param null|array $children
  * @return array
  */

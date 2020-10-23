@@ -2,7 +2,7 @@
 
 namespace App\Parsers;
 
-function parseJson(string $data): array
+function parseJson(string $data): object
 {
-    return (array) json_decode($data, true);
+    return json_decode($data);
 }

@@ -4,7 +4,7 @@ namespace App\Formatters\Plain;
 
 use function Funct\Collection\flattenAll;
 
-const START_OF_KEY_CHAIN = '';
+const PREFIX = '';
 
 function render(array $tree): string
 {
@@ -13,83 +13,64 @@ function render(array $tree): string
 
 function makePlainOutput(array $tree): array
 {
-    $collection = collectData($tree, START_OF_KEY_CHAIN);
-    return flattenAll($collection);
+    return flattenAll(format($tree, PREFIX));
 }
 
-function collectData(array $tree, string $chainOfKeys): array
+function format(array $tree, string $chainOfParents): array
 {
-    $iter = function ($node) use ($chainOfKeys) {
-        return nodeProcessing($node, $chainOfKeys);
+    $iter = function ($node) use ($chainOfParents) {
+        ['key' => $key, 'state' => $state, 'value' => $value, 'children' => $children] = $node;
+
+        if ($state === 'nested') {
+            $chainOfParents .= "{$key}.";
+            return format($children, $chainOfParents);
+        }
+
+        if ($state === 'changed') {
+            $dataValue['before'] = stringifyValue($value['before']);
+            $dataValue['after']  = stringifyValue($value['after']);
+        } else {
+            $dataValue = stringifyValue($value);
+        }
+
+        $chainOfParents .= $key;
+        return generateSentence([$chainOfParents, $state, $dataValue]);
     };
 
     return array_map($iter, $tree);
 }
 
 /**
- * @param array $node
- * @param string $chainOfKeys
- * @return array|string
- */
-function nodeProcessing($node, $chainOfKeys)
-{
-    ['key' => $key, 'state' => $state, 'value' => $value, 'children' => $children] = $node;
-
-    if ($state === 'nested') {
-        $chainOfKeys .= "{$key}.";
-        return collectData($children, $chainOfKeys);
-    }
-
-    if ($state === 'changed') {
-        $stringValue['before'] = stringifyData($value['before']);
-        $stringValue['after']  = stringifyData($value['after']);
-    } else {
-        $stringValue = stringifyData($value);
-    }
-
-    $chainOfKeys .= $key;
-    return generatePlainSentence([$chainOfKeys, $state, $stringValue]);
-}
-
-/**
- * @param array|string $data
+ * @param array|string $value
  * @return string
  */
-function stringifyData($data): string
+function stringifyValue($value): string
 {
-    if (!is_array($data)) {
-        return replaceLogicValue($data);
-    }
+    $typeFormats = [
+        'object'  => fn ($value) => '[complex value]',
+        'array'   => fn ($value) => '[complex value]',
+        'string'  => fn ($value) => $value,
+        'integer' => fn ($value) => (string) $value,
+        'boolean' => fn ($value) => $value ? 'true' : 'false',
+        'NULL'    => fn ($value) => 'null',
+    ];
 
-    return "[complex value]";
+    $valueType = gettype($value);
+
+    return $typeFormats[$valueType]($value);
 }
 
-function generatePlainSentence(array $item): string
+function generateSentence(array $node): string
 {
     $typeOfChanges = [
-        'unchanged' => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was not changed"),
-        'new'       => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was added with value: '{$value}'"),
-        'deleted'   => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was removed"),
-        'changed'   => fn ($chainOfKeys, $value) => ("Property '{$chainOfKeys}' was updated. " .
-                                                    "From '{$value['before']}' to '{$value['after']}'")
+        'unchanged' => fn ($chainOfParents, $value) => "Property '{$chainOfParents}' was not changed",
+        'new'       => fn ($chainOfParents, $value) => "Property '{$chainOfParents}' was added with value: '{$value}'",
+        'deleted'   => fn ($chainOfParents, $value) => "Property '{$chainOfParents}' was removed",
+        'changed'   => fn ($chainOfParents, $value) => "Property '{$chainOfParents}' was updated. " .
+                                                        "From '{$value['before']}' to '{$value['after']}'"
     ];
     
-    [$chainOfKeys, $state, $value] = $item;
+    [$chainOfParents, $state, $value] = $node;
 
-    return $typeOfChanges[$state]($chainOfKeys, $value);
-}
-
-/**
- * @param bool|string $value
- * @return string
- */
-function replaceLogicValue($value)
-{
-    $logicItems = [
-        true  => "true",
-        false => "false",
-        null  => "null",
-    ];
-
-    return $logicItems[$value] ?? (string) $value;
+    return $typeOfChanges[$state]($chainOfParents, $value);
 }

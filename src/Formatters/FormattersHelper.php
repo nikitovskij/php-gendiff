@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Formatters\GetFormatter;
+namespace App\Formatters\FormattersHelper;
 
 use function App\Formatters\Pretty\render as prettyRender;
 use function App\Formatters\Plain\render as plainRender;
 use function App\Formatters\Json\render as jsonRender;
 
-function formattingData(string $renderFormat, array $data = []): string
+function formattingData(string $renderFormat, array $data): string
 {
     $formatters = [
         'pretty' => fn($data) => prettyRender($data),
