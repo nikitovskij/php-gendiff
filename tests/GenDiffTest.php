@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Tests;
+namespace GenDiff\Tests;
 
 use PHPUnit\Framework\TestCase;
 
-use function App\genDiff;
+use function GenDiff\genDiff;
 
 class GenDiffTest extends TestCase
 {

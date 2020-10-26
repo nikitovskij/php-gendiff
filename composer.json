@@ -25,8 +25,8 @@
             "src/Formatters/Pretty.php",
             "src/Formatters/Plain.php",
             "src/Formatters/Json.php",
-            "src/Formatters/FormattersHelper.php",
-            "src/Parsers/ParsersHelper.php"
+            "src/Formatters/Formatters.php",
+            "src/Parsers/Parsers.php"
         ]
     },
     "require-dev": {

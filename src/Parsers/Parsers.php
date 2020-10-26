@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Parsers\ParsersHelper;
+namespace GenDiff\Parsers;
 
-use function App\Parsers\parseJson;
-use function App\Parsers\parseYml;
+use function GenDiff\Parsers\parseJson;
+use function GenDiff\Parsers\parseYml;
 
 function parseData(string $parserType, string $data): object
 {

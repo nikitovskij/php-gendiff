@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Parsers;
+namespace GenDiff\Parsers;
 
 function parseJson(string $data): object
 {

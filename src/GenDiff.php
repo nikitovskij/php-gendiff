@@ -1,10 +1,10 @@
 <?php
 
-namespace App;
+namespace GenDiff;
 
-use function App\Formatters\FormattersHelper\formattingData;
+use function GenDiff\Formatters\formatData;
 use function Funct\Collection\union;
-use function App\Parsers\ParsersHelper\parseData;
+use function GenDiff\Parsers\parseData;
 
 function genDiff(string $filePathOne, string $filePathTwo, string $format = 'pretty'): string
 {
@@ -19,7 +19,7 @@ function genDiff(string $filePathOne, string $filePathTwo, string $format = 'pre
 
     $diffTree = genDiffTree($dataFirst, $dataSecond);
 
-    return formattingData($format, $diffTree);
+    return formatData($format, $diffTree);
 }
 
 function read(string $filePath): string
@@ -41,8 +41,8 @@ function genDiffTree(object $dataFirst, object $dataSecond): array
 function makeComparison(string $key, object $dataFirst, object $dataSecond): array
 {
 
-    $dataValueFirst  = $dataFirst->$key ?? false;
-    $dataValueSecond = $dataSecond->$key ?? false;
+    $dataValueFirst  = $dataFirst->$key ?? null;
+    $dataValueSecond = $dataSecond->$key ?? null;
 
     if (is_object($dataValueFirst) && is_object($dataValueSecond)) {
         $children = array_values(genDiffTree($dataValueFirst, $dataValueSecond));

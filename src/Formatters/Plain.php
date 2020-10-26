@@ -1,10 +1,8 @@
 <?php
 
-namespace App\Formatters\Plain;
+namespace GenDiff\Formatters\Plain;
 
 use function Funct\Collection\flattenAll;
-
-const PREFIX = '';
 
 function render(array $tree): string
 {
@@ -13,31 +11,27 @@ function render(array $tree): string
 
 function makePlainOutput(array $tree): array
 {
-    return flattenAll(format($tree, PREFIX));
-}
+    $format = function ($tree, $nodePath) use (&$format) {
+        return array_map(function ($node) use (&$format, $nodePath) {
+            ['key' => $key, 'state' => $state, 'value' => $value, 'children' => $children] = $node;
 
-function format(array $tree, string $chainOfParents): array
-{
-    $iter = function ($node) use ($chainOfParents) {
-        ['key' => $key, 'state' => $state, 'value' => $value, 'children' => $children] = $node;
+            $ancestors = implode('.', array_filter([$nodePath, $key]));
+            if ($state === 'nested') {
+                return $format($children, $ancestors);
+            }
 
-        if ($state === 'nested') {
-            $chainOfParents .= "{$key}.";
-            return format($children, $chainOfParents);
-        }
+            if ($state === 'changed') {
+                $dataValue['before'] = stringifyValue($value['before']);
+                $dataValue['after']  = stringifyValue($value['after']);
+            } else {
+                $dataValue = stringifyValue($value);
+            }
 
-        if ($state === 'changed') {
-            $dataValue['before'] = stringifyValue($value['before']);
-            $dataValue['after']  = stringifyValue($value['after']);
-        } else {
-            $dataValue = stringifyValue($value);
-        }
-
-        $chainOfParents .= $key;
-        return generateSentence([$chainOfParents, $state, $dataValue]);
+            return generateSentence([$ancestors, $state, $dataValue]);
+        }, $tree);
     };
 
-    return array_map($iter, $tree);
+    return flattenAll($format($tree, ''));
 }
 
 /**
@@ -66,8 +60,10 @@ function generateSentence(array $node): string
         'unchanged' => fn ($chainOfParents, $value) => "Property '{$chainOfParents}' was not changed",
         'new'       => fn ($chainOfParents, $value) => "Property '{$chainOfParents}' was added with value: '{$value}'",
         'deleted'   => fn ($chainOfParents, $value) => "Property '{$chainOfParents}' was removed",
-        'changed'   => fn ($chainOfParents, $value) => "Property '{$chainOfParents}' was updated. " .
-                                                        "From '{$value['before']}' to '{$value['after']}'"
+        'changed'   => fn ($chainOfParents, $value) => implode('', [
+                                                            "Property '{$chainOfParents}' was updated. ",
+                                                            "From '{$value['before']}' to '{$value['after']}'"
+                                                        ])
     ];
     
     [$chainOfParents, $state, $value] = $node;

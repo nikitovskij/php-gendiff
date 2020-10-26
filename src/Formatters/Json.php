@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Formatters\Json;
+namespace GenDiff\Formatters\Json;
 
 function render(array $tree): string
 {

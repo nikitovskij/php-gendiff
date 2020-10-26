@@ -1,18 +1,16 @@
 <?php
 
-namespace App\Formatters\Pretty;
+namespace GenDiff\Formatters\Pretty;
 
-const INDENT = 4;
-const INITIAL_DEPTH = 0;
-const NODE_STATE_SYMBOLS = ['nested' => '    ', 'new' => '  + ', 'deleted' => '  - ', 'unchanged' => '    '];
+const INDENT_SIZE = 4;
 
 function render(array $tree): string
 {
-    $prettyOutput = makePrettyOutput($tree, INITIAL_DEPTH);
+    $prettyOutput = makePrettyOutput($tree);
     return "{\n{$prettyOutput}\n}";
 }
 
-function makePrettyOutput(array $tree, int $depth): string
+function makePrettyOutput(array $tree, int $depth = 0): string
 {
     $iter = function ($node) use ($depth) {
 
@@ -30,14 +28,19 @@ function makePrettyOutput(array $tree, int $depth): string
             $valueBefore = stringifyValue($value['before'], $depth + 1);
             $valueAfter  = stringifyValue($value['after'], $depth + 1);
 
-            return "{$indent}  - {$key}: {$valueBefore}\n" .
-                    "{$indent}  + {$key}: {$valueAfter}";
+            return "{$indent}  - {$key}: {$valueBefore}\n{$indent}  + {$key}: {$valueAfter}";
         }
 
-        $value       = stringifyValue($value, $depth + 1);
-        $stateSymbol = NODE_STATE_SYMBOLS[$state];
+        $value = stringifyValue($value, $depth + 1);
 
-        return "{$indent}{$stateSymbol}{$key}: {$value}";
+        $nodeState = [
+            'new'       => '  + ',
+            'deleted'   => '  - ',
+            'unchanged' => '    ',
+            'nested'    => '    '
+        ];
+
+        return "{$indent}{$nodeState[$state]}{$key}: {$value}";
     };
 
     return implode("\n", array_map($iter, $tree));
@@ -79,5 +82,5 @@ function stringifyValue($value, $depth)
 
 function generateIndent(int $depth): string
 {
-    return str_repeat(' ', INDENT * $depth);
+    return str_repeat(' ', INDENT_SIZE * $depth);
 }
