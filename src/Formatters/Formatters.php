@@ -1,6 +1,6 @@
 <?php
 
-namespace GenDiff\Formatters;
+namespace GenDiff\Formatters\Formatters;
 
 use function GenDiff\Formatters\Pretty\render as renderPretty;
 use function GenDiff\Formatters\Plain\render as renderPlain;

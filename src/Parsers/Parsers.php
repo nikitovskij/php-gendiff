@@ -1,6 +1,6 @@
 <?php
 
-namespace GenDiff\Parsers;
+namespace GenDiff\Parsers\Parsers;
 
 use function GenDiff\Parsers\parseJson;
 use function GenDiff\Parsers\parseYml;
