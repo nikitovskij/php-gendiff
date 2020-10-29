@@ -1,10 +1,10 @@
 <?php
 
-namespace GenDiff;
+namespace GenDiff\DiffGenerator;
 
-use function GenDiff\Formatters\Formatters\formatData;
+use function GenDiff\DiffGenerator\Formatters\formatData;
 use function Funct\Collection\union;
-use function GenDiff\Parsers\Parsers\parseData;
+use function GenDiff\DiffGenerator\Parsers\parseData;
 
 function genDiff(string $filePathOne, string $filePathTwo, string $format = 'pretty'): string
 {
@@ -35,35 +35,31 @@ function genDiffTree(object $dataFirst, object $dataSecond): array
 {
     $listOfKeys = union(array_keys(get_object_vars($dataFirst)), array_keys(get_object_vars($dataSecond)));
     sort($listOfKeys);
-    return array_map(fn ($key) => makeComparison($key, $dataFirst, $dataSecond), $listOfKeys);
-}
+    return array_map(function ($key) use ($dataFirst, $dataSecond) {
+        $dataValueFirst  = $dataFirst->$key ?? null;
+        $dataValueSecond = $dataSecond->$key ?? null;
 
-function makeComparison(string $key, object $dataFirst, object $dataSecond): array
-{
-
-    $dataValueFirst  = $dataFirst->$key ?? null;
-    $dataValueSecond = $dataSecond->$key ?? null;
-
-    if (is_object($dataValueFirst) && is_object($dataValueSecond)) {
-        $children = array_values(genDiffTree($dataValueFirst, $dataValueSecond));
-        return makeNode('nested', $key, null, $children);
-    }
-
-    if (property_exists($dataFirst, $key) && property_exists($dataSecond, $key)) {
-        if ($dataValueFirst !== $dataValueSecond) {
-            return makeNode('changed', $key, ['before' => $dataValueFirst, 'after' => $dataValueSecond]);
+        if (is_object($dataValueFirst) && is_object($dataValueSecond)) {
+            $children = array_values(genDiffTree($dataValueFirst, $dataValueSecond));
+            return makeNode('nested', $key, null, $children);
         }
-    }
 
-    if (!property_exists($dataFirst, $key) && property_exists($dataSecond, $key)) {
-        return makeNode('new', $key, $dataValueSecond);
-    }
+        if (property_exists($dataFirst, $key) && property_exists($dataSecond, $key)) {
+            if ($dataValueFirst !== $dataValueSecond) {
+                return makeNode('changed', $key, ['before' => $dataValueFirst, 'after' => $dataValueSecond]);
+            }
+        }
 
-    if (property_exists($dataFirst, $key) && !property_exists($dataSecond, $key)) {
-        return makeNode('deleted', $key, $dataValueFirst);
-    }
+        if (!property_exists($dataFirst, $key) && property_exists($dataSecond, $key)) {
+            return makeNode('new', $key, $dataValueSecond);
+        }
 
-    return makeNode('unchanged', $key, $dataValueFirst);
+        if (property_exists($dataFirst, $key) && !property_exists($dataSecond, $key)) {
+            return makeNode('deleted', $key, $dataValueFirst);
+        }
+
+        return makeNode('unchanged', $key, $dataValueFirst);
+    }, $listOfKeys);
 }
 
 /**

@@ -19,14 +19,14 @@
     ],
     "autoload": {
         "files": [
-            "src/GenDiff.php",
+            "src/DiffGenerator.php",
             "src/Parsers/JsonParser.php",
             "src/Parsers/YmlParser.php",
             "src/Formatters/Pretty.php",
             "src/Formatters/Plain.php",
             "src/Formatters/Json.php",
-            "src/Formatters/Formatters.php",
-            "src/Parsers/Parsers.php"
+            "src/Formatters.php",
+            "src/Parsers.php"
         ]
     },
     "require-dev": {

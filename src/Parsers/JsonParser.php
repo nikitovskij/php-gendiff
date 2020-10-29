@@ -1,6 +1,6 @@
 <?php
 
-namespace GenDiff\Parsers;
+namespace GenDiff\DiffGenerator\Parsers;
 
 function parseJson(string $data): object
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace GenDiff\Formatters\Json;
+namespace GenDiff\DiffGenerator\Formatters\Json;
 
 function render(array $tree): string
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace GenDiff\Formatters\Pretty;
+namespace GenDiff\DiffGenerator\Formatters\Pretty;
 
 const INDENT_SIZE = 4;
 
@@ -53,31 +53,29 @@ function makePrettyOutput(array $tree, int $depth = 0): string
  */
 function stringifyValue($value, $depth)
 {
+    $indent = generateIndent($depth);
+
+    $stringifyComplexValue = function ($complexValue, $depth) use ($indent) {
+        $iter = function ($value, $key) use ($depth, $indent) {
+            $value = stringifyValue($value, $depth);
+            return "{$indent}    {$key}: {$value}";
+        };
+
+        $formattedLine = implode("\n", array_map($iter, $complexValue, array_keys($complexValue)));
+        return "{\n{$formattedLine}\n{$indent}}";
+    };
 
     $typeFormats = [
         'string'  => fn($value) => $value,
         'integer' => fn($value) => (string) $value,
         'boolean' => fn($value) => $value ? 'true' : 'false',
         'NULL'    => fn($value) => 'null',
+        'object'  => fn($value) => $stringifyComplexValue(get_object_vars($value), $depth + 1),
+        'array'   => fn($value) => $stringifyComplexValue($value, $depth),
     ];
 
-    if (!is_object($value) && !is_array($value)) {
-        $valueType = gettype($value);
-        return $typeFormats[$valueType]($value);
-    }
-
-    $dataArray = (array) $value;
-    $indent    = generateIndent($depth);
-
-    $iter = function ($key) use ($dataArray, $indent, $depth) {
-        $value = stringifyValue($dataArray[$key], $depth + 1);
-
-        return "{$indent}    {$key}: {$value}";
-    };
-
-    $dataString = implode("\n", array_map($iter, array_keys($dataArray)));
-
-    return "{\n{$dataString}\n{$indent}}";
+    $valueType = gettype($value);
+    return $typeFormats[$valueType]($value);
 }
 
 function generateIndent(int $depth): string

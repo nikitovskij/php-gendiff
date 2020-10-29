@@ -1,9 +1,9 @@
 <?php
 
-namespace GenDiff\Parsers\Parsers;
+namespace GenDiff\DiffGenerator\Parsers;
 
-use function GenDiff\Parsers\parseJson;
-use function GenDiff\Parsers\parseYml;
+use function GenDiff\DiffGenerator\Parsers\parseJson;
+use function GenDiff\DiffGenerator\Parsers\parseYml;
 
 function parseData(string $parserType, string $data): object
 {
@@ -13,7 +13,7 @@ function parseData(string $parserType, string $data): object
         'yaml' => fn ($data) => parseYml($data)
     ];
 
-    if (!isset($parsers[$parserType])) {
+    if (!array_key_exists($parserType, $parsers)) {
         throw new \Exception('Unsupported file format');
     }
 

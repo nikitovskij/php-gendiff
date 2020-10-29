@@ -4,7 +4,7 @@ namespace GenDiff\Tests;
 
 use PHPUnit\Framework\TestCase;
 
-use function GenDiff\genDiff;
+use function GenDiff\DiffGenerator\genDiff;
 
 class GenDiffTest extends TestCase
 {

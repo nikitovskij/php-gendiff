@@ -1,10 +1,10 @@
 <?php
 
-namespace GenDiff\Formatters\Formatters;
+namespace GenDiff\DiffGenerator\Formatters;
 
-use function GenDiff\Formatters\Pretty\render as renderPretty;
-use function GenDiff\Formatters\Plain\render as renderPlain;
-use function GenDiff\Formatters\Json\render as renderJson;
+use function GenDiff\DiffGenerator\Formatters\Pretty\render as renderPretty;
+use function GenDiff\DiffGenerator\Formatters\Plain\render as renderPlain;
+use function GenDiff\DiffGenerator\Formatters\Json\render as renderJson;
 
 function formatData(string $renderFormat, array $data): string
 {
@@ -14,7 +14,7 @@ function formatData(string $renderFormat, array $data): string
         'json'   => fn ($data) => renderJson($data),
     ];
 
-    if (!isset($formatters[$renderFormat])) {
+    if (!array_key_exists($renderFormat, $formatters)) {
         throw new \Exception("Unknown report format `{$renderFormat}`.\n");
     }
 
