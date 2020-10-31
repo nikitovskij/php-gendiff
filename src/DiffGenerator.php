@@ -44,18 +44,16 @@ function genDiffTree(object $dataFirst, object $dataSecond): array
             return makeNode('nested', $key, null, $children);
         }
 
-        if (property_exists($dataFirst, $key) && property_exists($dataSecond, $key)) {
-            if ($dataValueFirst !== $dataValueSecond) {
-                return makeNode('changed', $key, ['before' => $dataValueFirst, 'after' => $dataValueSecond]);
-            }
-        }
-
         if (!property_exists($dataFirst, $key) && property_exists($dataSecond, $key)) {
             return makeNode('new', $key, $dataValueSecond);
         }
 
         if (property_exists($dataFirst, $key) && !property_exists($dataSecond, $key)) {
             return makeNode('deleted', $key, $dataValueFirst);
+        }
+
+        if ($dataValueFirst !== $dataValueSecond) {
+            return makeNode('changed', $key, ['before' => $dataValueFirst, 'after' => $dataValueSecond]);
         }
 
         return makeNode('unchanged', $key, $dataValueFirst);
