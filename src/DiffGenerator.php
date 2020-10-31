@@ -2,9 +2,9 @@
 
 namespace GenDiff\DiffGenerator;
 
-use function GenDiff\DiffGenerator\Formatters\formatData;
+use function GenDiff\Formatters\formatData;
 use function Funct\Collection\union;
-use function GenDiff\DiffGenerator\Parsers\parseData;
+use function GenDiff\Parsers\parseData;
 
 function genDiff(string $filePathOne, string $filePathTwo, string $format = 'pretty'): string
 {

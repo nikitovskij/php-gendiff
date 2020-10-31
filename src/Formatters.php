@@ -1,10 +1,10 @@
 <?php
 
-namespace GenDiff\DiffGenerator\Formatters;
+namespace GenDiff\Formatters;
 
-use function GenDiff\DiffGenerator\Formatters\Pretty\render as renderPretty;
-use function GenDiff\DiffGenerator\Formatters\Plain\render as renderPlain;
-use function GenDiff\DiffGenerator\Formatters\Json\render as renderJson;
+use function GenDiff\Formatters\Pretty\render as renderPretty;
+use function GenDiff\Formatters\Plain\render as renderPlain;
+use function GenDiff\Formatters\Json\render as renderJson;
 
 function formatData(string $renderFormat, array $data): string
 {

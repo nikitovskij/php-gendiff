@@ -1,6 +1,6 @@
 <?php
 
-namespace GenDiff\DiffGenerator\Formatters\Pretty;
+namespace GenDiff\Formatters\Pretty;
 
 const INDENT_SIZE = 4;
 
@@ -13,7 +13,6 @@ function render(array $tree): string
 function makePrettyOutput(array $tree, int $depth = 0): string
 {
     $iter = function ($node) use ($depth) {
-
         ['key' => $key, 'state' => $state, 'value' => $value, 'children' => $children] = $node;
         $indent = generateIndent($depth);
 
@@ -57,8 +56,8 @@ function stringifyValue($value, $depth)
 
     $stringifyComplexValue = function ($complexValue, $depth) use ($indent) {
         $iter = function ($value, $key) use ($depth, $indent) {
-            $value = stringifyValue($value, $depth);
-            return "{$indent}    {$key}: {$value}";
+            $formattedValue = stringifyValue($value, $depth);
+            return "{$indent}    {$key}: {$formattedValue}";
         };
 
         $formattedLine = implode("\n", array_map($iter, $complexValue, array_keys($complexValue)));

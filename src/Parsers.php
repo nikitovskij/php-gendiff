@@ -1,9 +1,9 @@
 <?php
 
-namespace GenDiff\DiffGenerator\Parsers;
+namespace GenDiff\Parsers;
 
-use function GenDiff\DiffGenerator\Parsers\parseJson;
-use function GenDiff\DiffGenerator\Parsers\parseYml;
+use function GenDiff\Parsers\parseJson;
+use function GenDiff\Parsers\parseYml;
 
 function parseData(string $parserType, string $data): object
 {
