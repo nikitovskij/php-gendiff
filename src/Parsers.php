@@ -14,7 +14,7 @@ function parseData(string $parserType, string $data): object
     ];
 
     if (!array_key_exists($parserType, $parsers)) {
-        throw new \Exception('Unsupported file format');
+        throw new \Exception("Unsupported format `{$parserType}`");
     }
 
     return $parsers[$parserType]($data);

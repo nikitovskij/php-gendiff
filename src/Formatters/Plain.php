@@ -13,14 +13,37 @@ function makePlainOutput(array $tree): array
 {
     $format = function ($tree, $ancestorPath = []) use (&$format) {
         return array_map(function ($node) use (&$format, $ancestorPath) {
-            ['key' => $key, 'state' => $state, 'value' => $value, 'children' => $children] = $node;
+            [
+                'key'      => $key,
+                'state'    => $state,
+                'oldValue' => $oldValue,
+                'newValue' => $newValue,
+                'children' => $children
+            ] = $node;
 
-            $ancestorPath[] = $key;
-            if ($state === 'nested') {
-                return $format($children, $ancestorPath);
+            $nodePath = implode('.', [...$ancestorPath, $key]);
+            switch ($state) {
+                case 'nested':
+                    return $format($children, [...$ancestorPath, $key]);
+
+                case 'unchanged':
+                    return "Property '{$nodePath}' was not changed";
+
+                case 'new':
+                    $formattedValue = stringifyValue($newValue);
+                    return "Property '{$nodePath}' was added with value: '{$formattedValue}'";
+
+                case 'deleted':
+                    return "Property '{$nodePath}' was removed";
+
+                case 'changed':
+                    $valueBefore = stringifyValue($oldValue);
+                    $valueAfter  = stringifyValue($newValue);
+                    return "Property '{$nodePath}' was updated. From '{$valueBefore}' to '{$valueAfter}'";
+
+                default:
+                    throw new \Exception("Unknown type of node: `{$state}`");
             }
-
-            return generateSentence($ancestorPath, $state, $value);
         }, $tree);
     };
 
@@ -45,31 +68,4 @@ function stringifyValue($value): string
     $valueType = gettype($value);
 
     return $typeFormats[$valueType]($value);
-}
-
-/**
- * @param array $ancestorPath
- * @param string $state
- * @param array|string $value
- * @return string
- */
-function generateSentence($ancestorPath, $state, $value): string
-{
-    $nodePath = implode('.', $ancestorPath);
-    switch ($state) {
-        case 'unchanged':
-            return "Property '{$nodePath}' was not changed";
-        case 'new':
-            $formattedValue = stringifyValue($value);
-            return "Property '{$nodePath}' was added with value: '{$formattedValue}'";
-        case 'deleted':
-            return "Property '{$nodePath}' was removed";
-        case 'changed':
-            ['before' => $beforeValue, 'after' => $afterValue] = $value;
-            $before = stringifyValue($beforeValue);
-            $after  = stringifyValue($afterValue);
-            return "Property '{$nodePath}' was updated. From '{$before}' to '{$after}'";
-        default:
-            throw new \Exception("Unknown type of node: `{$state}`");
-    }
 }

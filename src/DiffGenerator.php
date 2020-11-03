@@ -39,21 +39,21 @@ function genDiffTree(object $dataFirst, object $dataSecond): array
         $dataValueFirst  = $dataFirst->$key ?? null;
         $dataValueSecond = $dataSecond->$key ?? null;
 
-        if (is_object($dataValueFirst) && is_object($dataValueSecond)) {
-            $children = array_values(genDiffTree($dataValueFirst, $dataValueSecond));
-            return makeNode('nested', $key, null, $children);
-        }
-
         if (!property_exists($dataFirst, $key) && property_exists($dataSecond, $key)) {
-            return makeNode('new', $key, $dataValueSecond);
+            return makeNode('new', $key, $dataValueFirst, $dataValueSecond);
         }
 
         if (property_exists($dataFirst, $key) && !property_exists($dataSecond, $key)) {
-            return makeNode('deleted', $key, $dataValueFirst);
+            return makeNode('deleted', $key, $dataValueFirst, $dataValueSecond);
+        }
+
+        if (is_object($dataValueFirst) && is_object($dataValueSecond)) {
+            $children = array_values(genDiffTree($dataValueFirst, $dataValueSecond));
+            return makeNode('nested', $key, $dataValueFirst, $dataValueSecond, $children);
         }
 
         if ($dataValueFirst !== $dataValueSecond) {
-            return makeNode('changed', $key, ['before' => $dataValueFirst, 'after' => $dataValueSecond]);
+            return makeNode('changed', $key, $dataValueFirst, $dataValueSecond);
         }
 
         return makeNode('unchanged', $key, $dataValueFirst);
@@ -63,11 +63,18 @@ function genDiffTree(object $dataFirst, object $dataSecond): array
 /**
  * @param string $state
  * @param string $key
- * @param null|object|string|array $value
+ * @param null|object|string|array $oldValue
+ * @param null|object|string|array $newValue
  * @param null|array $children
  * @return array
  */
-function makeNode($state, $key, $value, $children = null)
+function makeNode($state, $key, $oldValue = null, $newValue = null, $children = null)
 {
-    return ['key' => $key, 'state' => $state, 'value' => $value, 'children' => $children];
+    return [
+        'key'      => $key,
+        'state'    => $state,
+        'oldValue' => $oldValue,
+        'newValue' => $newValue,
+        'children' => $children
+    ];
 }

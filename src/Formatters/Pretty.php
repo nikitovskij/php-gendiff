@@ -13,33 +13,43 @@ function render(array $tree): string
 function makePrettyOutput(array $tree, int $depth = 0): string
 {
     $iter = function ($node) use ($depth) {
-        ['key' => $key, 'state' => $state, 'value' => $value, 'children' => $children] = $node;
+
+        [
+            'key'      => $key,
+            'state'    => $state,
+            'oldValue' => $oldValue,
+            'newValue' => $newValue,
+            'children' => $children
+        ] = $node;
+
         $indent = generateIndent($depth);
 
-        if ($state === 'nested') {
-            $value       = makePrettyOutput($children, $depth + 1);
-            $indentAfter = generateIndent($depth + 1);
+        switch ($state) {
+            case 'nested':
+                $value       = makePrettyOutput($children, $depth + 1);
+                $indentAfter = generateIndent($depth + 1);
+                return "{$indent}    {$key}: {\n{$value}\n{$indentAfter}}";
 
-            return "{$indent}    {$key}: {\n{$value}\n{$indentAfter}}";
+            case 'changed':
+                $valueBefore = stringifyValue($oldValue, $depth + 1);
+                $valueAfter  = stringifyValue($newValue, $depth + 1);
+                return "{$indent}  - {$key}: {$valueBefore}\n{$indent}  + {$key}: {$valueAfter}";
+
+            case 'new':
+                $formattedValue = stringifyValue($newValue, $depth + 1);
+                return "{$indent}  + {$key}: {$formattedValue}";
+
+            case 'deleted':
+                $formattedValue = stringifyValue($oldValue, $depth + 1);
+                return "{$indent}  - {$key}: {$formattedValue}";
+
+            case 'unchanged':
+                $formattedValue = stringifyValue($oldValue, $depth + 1);
+                return "{$indent}    {$key}: {$formattedValue}";
+
+            default:
+                throw new \Exception("Unknown type of node: `{$state}`");
         }
-
-        if ($state === 'changed') {
-            $valueBefore = stringifyValue($value['before'], $depth + 1);
-            $valueAfter  = stringifyValue($value['after'], $depth + 1);
-
-            return "{$indent}  - {$key}: {$valueBefore}\n{$indent}  + {$key}: {$valueAfter}";
-        }
-
-        $value = stringifyValue($value, $depth + 1);
-
-        $nodeState = [
-            'new'       => '  + ',
-            'deleted'   => '  - ',
-            'unchanged' => '    ',
-            'nested'    => '    '
-        ];
-
-        return "{$indent}{$nodeState[$state]}{$key}: {$value}";
     };
 
     return implode("\n", array_map($iter, $tree));
