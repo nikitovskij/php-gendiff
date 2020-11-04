@@ -37,9 +37,12 @@ function makePlainOutput(array $tree): array
                     return "Property '{$nodePath}' was removed";
 
                 case 'changed':
-                    $valueBefore = stringifyValue($oldValue);
-                    $valueAfter  = stringifyValue($newValue);
-                    return "Property '{$nodePath}' was updated. From '{$valueBefore}' to '{$valueAfter}'";
+                    $formattedValueBefore = stringifyValue($oldValue);
+                    $formattedValueAfter  = stringifyValue($newValue);
+                    return implode(' ', [
+                        "Property '{$nodePath}' was updated.",
+                        "From '{$formattedValueBefore}' to '{$formattedValueAfter}'"
+                        ]);
 
                 default:
                     throw new \Exception("Unknown type of node: `{$state}`");
