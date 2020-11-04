@@ -2,35 +2,8 @@
     {
         "key": "common",
         "state": "nested",
-        "oldValue": {
-            "setting1": "Value 1",
-            "setting2": 200,
-            "setting3": true,
-            "setting6": {
-                "key": "value",
-                "doge": {
-                    "wow": "too much"
-                }
-            }
-        },
-        "newValue": {
-            "follow": false,
-            "setting1": "Value 1",
-            "setting3": {
-                "key": "value"
-            },
-            "setting4": "blah blah",
-            "setting5": {
-                "key5": "value5"
-            },
-            "setting6": {
-                "key": "value",
-                "ops": "vops",
-                "doge": {
-                    "wow": "so much"
-                }
-            }
-        },
+        "oldValue": null,
+        "newValue": null,
         "children": [
             {
                 "key": "follow",
@@ -81,29 +54,14 @@
             {
                 "key": "setting6",
                 "state": "nested",
-                "oldValue": {
-                    "key": "value",
-                    "doge": {
-                        "wow": "too much"
-                    }
-                },
-                "newValue": {
-                    "key": "value",
-                    "ops": "vops",
-                    "doge": {
-                        "wow": "so much"
-                    }
-                },
+                "oldValue": null,
+                "newValue": null,
                 "children": [
                     {
                         "key": "doge",
                         "state": "nested",
-                        "oldValue": {
-                            "wow": "too much"
-                        },
-                        "newValue": {
-                            "wow": "so much"
-                        },
+                        "oldValue": null,
+                        "newValue": null,
                         "children": [
                             {
                                 "key": "wow",
@@ -135,18 +93,8 @@
     {
         "key": "group1",
         "state": "nested",
-        "oldValue": {
-            "baz": "bas",
-            "foo": "bar",
-            "nest": {
-                "key": "value"
-            }
-        },
-        "newValue": {
-            "foo": "bar",
-            "baz": "bars",
-            "nest": "str"
-        },
+        "oldValue": null,
+        "newValue": null,
         "children": [
             {
                 "key": "baz",

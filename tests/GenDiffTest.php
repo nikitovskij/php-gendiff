@@ -18,9 +18,9 @@ class GenDiffTest extends TestCase
      *
      * @dataProvider defaultOutputProvider
      */
-    public function testDefaultFormatOutput(string $fileName1, string $fileName2, string $expectedFile): void
+    public function testDefaultFormatOutput(string $fileName1, string $fileName2, string $expectedFileName): void
     {
-        $expectedOutput = file_get_contents($this->makeFilePath($expectedFile));
+        $expectedOutput = file_get_contents($this->makeFilePath($expectedFileName));
         $this->assertSame($expectedOutput, genDiff($this->makeFilePath($fileName1), $this->makeFilePath($fileName2)));
     }
 
@@ -31,10 +31,10 @@ class GenDiffTest extends TestCase
     public function testFormattersOutput(
         string $fileName1,
         string $fileName2,
-        string $expectedFile,
+        string $expectedFileName,
         string $outputFormat
     ): void {
-        $expectedOutput = file_get_contents($this->makeFilePath($expectedFile));
+        $expectedOutput = file_get_contents($this->makeFilePath($expectedFileName));
         $this->assertSame($expectedOutput, genDiff(
             $this->makeFilePath($fileName1),
             $this->makeFilePath($fileName2),

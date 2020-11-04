@@ -15,7 +15,7 @@ function formatData(string $renderFormat, array $data): string
     ];
 
     if (!array_key_exists($renderFormat, $formatters)) {
-        throw new \Exception("Unknown report format `{$renderFormat}`.\n");
+        throw new \Exception("Unknown report format `{$renderFormat}`.");
     }
 
     return $formatters[$renderFormat]($data);

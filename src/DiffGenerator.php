@@ -25,7 +25,7 @@ function genDiff(string $filePathOne, string $filePathTwo, string $format = 'pre
 function read(string $filePath): string
 {
     if (!file_exists($filePath)) {
-        throw new \Exception("File `{$filePath}` not found.\n");
+        throw new \Exception("File `{$filePath}` not found.");
     }
 
     return (string) file_get_contents((string) realpath($filePath));
@@ -40,23 +40,23 @@ function genDiffTree(object $dataFirst, object $dataSecond): array
         $dataValueSecond = $dataSecond->$key ?? null;
 
         if (!property_exists($dataFirst, $key) && property_exists($dataSecond, $key)) {
-            return makeNode('new', $key, $dataValueFirst, $dataValueSecond);
+            return makeNode('new', $key, null, $dataValueSecond);
         }
 
         if (property_exists($dataFirst, $key) && !property_exists($dataSecond, $key)) {
-            return makeNode('deleted', $key, $dataValueFirst, $dataValueSecond);
+            return makeNode('deleted', $key, $dataValueFirst, null);
         }
 
         if (is_object($dataValueFirst) && is_object($dataValueSecond)) {
             $children = array_values(genDiffTree($dataValueFirst, $dataValueSecond));
-            return makeNode('nested', $key, $dataValueFirst, $dataValueSecond, $children);
+            return makeNode('nested', $key, null, null, $children);
         }
 
         if ($dataValueFirst !== $dataValueSecond) {
             return makeNode('changed', $key, $dataValueFirst, $dataValueSecond);
         }
 
-        return makeNode('unchanged', $key, $dataValueFirst);
+        return makeNode('unchanged', $key, $dataValueFirst, null);
     }, $listOfKeys);
 }
 

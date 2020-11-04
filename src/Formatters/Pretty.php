@@ -31,9 +31,9 @@ function makePrettyOutput(array $tree, int $depth = 0): string
                 return "{$indent}    {$key}: {\n{$value}\n{$indentAfter}}";
 
             case 'changed':
-                $valueBefore = stringifyValue($oldValue, $depth + 1);
-                $valueAfter  = stringifyValue($newValue, $depth + 1);
-                return "{$indent}  - {$key}: {$valueBefore}\n{$indent}  + {$key}: {$valueAfter}";
+                $formattedValueBefore = stringifyValue($oldValue, $depth + 1);
+                $formattedValueAfter  = stringifyValue($newValue, $depth + 1);
+                return "{$indent}  - {$key}: {$formattedValueBefore}\n{$indent}  + {$key}: {$formattedValueAfter}";
 
             case 'new':
                 $formattedValue = stringifyValue($newValue, $depth + 1);
